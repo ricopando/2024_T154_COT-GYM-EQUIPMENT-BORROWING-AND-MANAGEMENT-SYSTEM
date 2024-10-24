@@ -14,4 +14,4 @@ Degenion, Johan Jay E.
 
 Pando, Rico T.
 
-Padilla, Nikko T.
+Padilla, Nikko B.
