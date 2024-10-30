@@ -1,0 +1,76 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
+.container {
+  width: 100%;
+}
+/* NAVBAR */
+.navbar img {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+}
+
+.name {
+  font-size: 20px;
+  margin-left: 10px;
+  font-weight: bold;
+  font-family: "Poppins", serif;
+  color: #29323c !important;
+}
+
+#searchBox {
+  width: 300px;
+}
+
+.searchButton {
+  border-style: none;
+  width: 100px;
+  border-radius: 5px;
+  background-color: #29323c !important;
+  color: white;
+  font-family: "Poppins", serif;
+}
+
+/* CONTENTS OF USER DASHBOARD*/
+#textContainer {
+  height: 100vh;
+}
+
+.systemName {
+  color: #29323c !important;
+  font-size: 40px;
+  font-family: "Poppins", serif;
+  font-weight: bold;
+  line-height: 40px;
+  margin-top: 30%;
+  text-align: center;
+}
+
+.infoText {
+  color: #29323c !important;
+  font-size: 15px;
+  text-align: justify;
+  font-family: "Poppins", serif;
+  margin-top: 20px;
+}
+
+.seeMoreBTN {
+  border-style: none;
+  width: 250px;
+  height: 40px;
+  border-radius: 5px;
+  background-color: #29323c !important;
+  color: white;
+  font-family: "Poppins", serif;
+  display: block;
+  margin: 0 auto;
+}
+
+#picContainer {
+  height: 30vh;
+}
+
+.welcomeIMG {
+  width: 100%;
+  height: 80vh auto;
+}
