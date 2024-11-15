@@ -125,17 +125,17 @@ const Login = () => {
             <Image
               src={BuksuLogo}
               alt="Logo"
-              boxSize="40px"
-              mb="2"
+              boxSize="100px"
+              mb="1"
             />
-            <Heading size="lg" fontWeight="normal" color={textColor}>
+            <Heading size="md" fontWeight="bold" color={textColor} >
               Login
             </Heading>
             <Text fontSize="sm" color="gray.500">
               to continue to GEMBS
             </Text>
           </Flex>
-          <Stack spacing="5">
+          <Stack spacing="1">
             {/* Google sign-in button */}
             <Button leftIcon={<FcGoogle />} colorScheme={buttonColorScheme} variant="outline" width="full" onClick={loginWithGoogle}>
               Continue with Google
@@ -179,13 +179,12 @@ const Login = () => {
               sitekey="6LchNHgqAAAAAMgvERINOjrK9Bsmvquidlxht9vl"
               onChange={handleRecaptchaChange}
               ref={recaptchaRef}
-              style={{ transform: 'scale(0.8)', transformOrigin: '0 0' }}
+              style={{ transform: 'scale(0.8)', transformOrigin: '0 0', display: 'flex', justifyContent: "center", marginLeft: "4rem", marginTop: "1rem" }}
             />
             {/* Submit Button */}
             <Button
               colorScheme="blue"
               width="full"
-              mt="4"
               aria-label="Login"
               onClick={handleManualLogin}
               isLoading={loading}
@@ -194,7 +193,7 @@ const Login = () => {
             </Button>
           </Stack>
           <Text mt="4" fontSize="xs" textAlign="center" color="gray.500">
-            Not your computer? Use a private browsing window to sign in.
+            Not your computer? Use a private browsing window to login.
           </Text>
         </Box>
       </Flex>
@@ -232,9 +231,9 @@ const Login = () => {
       </Box>
 
       {/* Toggle Dark Mode Button */}
-      <Box 
-        position={{ base: 'absolute', md: 'fixed' }} 
-        top={{ base: '16px', md: '16px' }} 
+      <Box
+        position={{ base: 'absolute', md: 'fixed' }}
+        top={{ base: '16px', md: '16px' }}
         right={{ base: '16px', md: '16px' }}
         zIndex="3"
       >

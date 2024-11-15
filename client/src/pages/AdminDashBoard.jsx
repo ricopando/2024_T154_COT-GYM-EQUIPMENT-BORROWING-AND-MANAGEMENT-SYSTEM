@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Flex, Box, Text, Spinner, Alert, useBreakpointValue, Stack,  useDisclosure } from '@chakra-ui/react';
+import { Flex, Box, Text, Spinner, Alert, useBreakpointValue, Stack, useDisclosure } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { GoAlertFill } from 'react-icons/go';
@@ -89,7 +89,7 @@ const AdminDashBoard = () => {
           <Sidebar userdata={userdata} isSidebarOpen={isSidebarOpen} />
 
           <Box
-            bg="gray.50"
+            bg="#ffffff"
             flex="1"
             p="6"
             overflowY="auto"
@@ -105,7 +105,8 @@ const AdminDashBoard = () => {
             {/* Dashboard Stats */}
             <Stack direction={{ base: 'column', md: 'row' }} spacing="6" mb="6" flexWrap="wrap">
               <Box
-                bg="white"
+                bg="#12203A"
+                color="white"
                 flex="1"
                 borderRadius="md"
                 boxShadow="md"
@@ -121,7 +122,8 @@ const AdminDashBoard = () => {
               </Box>
 
               <Box
-                bg="white"
+                bg="#12203A"
+                color="white"
                 flex="1"
                 borderRadius="md"
                 boxShadow="md"
@@ -137,7 +139,8 @@ const AdminDashBoard = () => {
               </Box>
 
               <Box
-                bg="white"
+                bg="#12203A"
+                color="white"
                 flex="1"
                 borderRadius="md"
                 boxShadow="md"
@@ -156,9 +159,9 @@ const AdminDashBoard = () => {
             {/* Additional Content */}
             {/* Add any additional content or sections here as needed */}
           </Box>
-        </Flex>
-      </Flex>
-    </Box>
+        </Flex >
+      </Flex >
+    </Box >
   );
 };
 

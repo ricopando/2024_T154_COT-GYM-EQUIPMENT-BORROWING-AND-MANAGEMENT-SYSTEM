@@ -2,22 +2,32 @@ import React from "react";
 import { Box, Button, Container, Flex, Grid, Heading, Text, Menu, MenuButton, MenuList, MenuItem, Skeleton, SkeletonText, useBreakpointValue } from "@chakra-ui/react";
 import { FaRegUserCircle } from "react-icons/fa";
 
+
+import "./index.css"
+import BuksuLogo from '../assets/buksuTransparent.png';
+import sportsImg from '../assets/sports.jpg'
+import electronicsImg from '../assets/electronicsImg.png'
+import furnitureImg from '../assets/furnitureImg.jpg'
+import welcomeImg from '../assets/welcomeImg.jpg'
+
+
+
 function UserDashboard() {
   const isMobile = useBreakpointValue({ base: true, md: false });
 
   // Retrieve user data from localStorage
   const user = JSON.parse(localStorage.getItem('user')) || {};
-  
+
   return (
     <Box>
       {/* Navbar */}
-      <Box as="nav" bg="gray.800" py={4} boxShadow="md">
+      <Box as="nav" py={4} boxShadow="md" style={{ background: "#12203A" }} >
         <Container maxW="container.lg" display="flex" alignItems="center" justifyContent="space-between">
-          <Box bg="gray.700" width="150px" height="50px" borderRadius="md" /> {/* Placeholder for logo */}
+          <div><img src={BuksuLogo} alt="" style={{ width: "5rem" }} /></div>{/* Placeholder for logo */}
           <Flex align="center">
-            <Button colorScheme="blue" variant="link" mr={4}>Home</Button>
-            <Button colorScheme="blue" variant="link" mr={4}>Borrows</Button>
-            <Button colorScheme="blue" variant="link" mr={4}>About Us</Button>
+            <Button variant="link" mr={4} style={{ color: "white" }}>Home</Button>
+            <Button variant="link" mr={4} style={{ color: "white" }}>Borrows</Button>
+            <Button variant="link" mr={4} style={{ color: "white" }}>About Us</Button>
             {/* User Dropdown */}
             <Menu>
               <MenuButton
@@ -42,38 +52,42 @@ function UserDashboard() {
         <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={6}>
           {/* Left Side: Dashboard Content */}
           <Box>
-            <Heading as="h1" size="2xl" mb={4} color="blue.500">
+            <Heading as="h1" size="2xl" mb={4} style={{ color: "black", fontFamily: "Poppins, sans-serif" }}>
               GYM EQUIPMENT MANAGEMENT AND BORROWING SYSTEM
             </Heading>
-            <Text fontSize="xl" color="gray.600" mb={8}>
+            <Text fontSize="xl" color="gray.600" mb={8} style={{ color: "black", fontFamily: "Poppins, sans-serif" }}>
               Welcome to your dashboard, {user.name}! Your email: {user.email}.
             </Text>
 
             {/* Skeleton Loader for Equipment Categories */}
             <Grid templateColumns={{ base: "1fr", sm: "repeat(3, 1fr)" }} gap={4}>
-              <Box>
-                <Skeleton height="200px" borderRadius="md" />
-              </Box>
-              <Box>
-                <Skeleton height="200px" borderRadius="md" />
-              </Box>
-              <Box>
-                <Skeleton height="200px" borderRadius="md" />
-              </Box>
+              <div>
+                <img src={sportsImg} alt="" style={{ height: "12rem" }} />
+              </div>
+
+              <div>
+                <img src={electronicsImg} alt="" style={{ height: "12rem" }} />
+              </div>
+
+              <div>
+                <img src={furnitureImg} alt="" style={{ height: "12rem" }} />
+              </div>
+
+
             </Grid>
 
-            <Button mt={4} colorScheme="blue" size="lg" w="full" _hover={{ bg: "blue.600" }}>
+            <Button mt={4} style={{ background: "#12203A", color: "white" }} size="lg" w="full" _hover={{ bg: "blue.600" }}>
               BORROW
             </Button>
           </Box>
 
           {/* Right Side: Welcome Image Placeholder */}
           <Box display={{ base: "none", md: "block" }}>
-            <Skeleton height="300px" borderRadius="md" />
+            <img src={welcomeImg} alt="" style={{ height: "60vh" }} />
           </Box>
         </Grid>
       </Container>
-    </Box>
+    </Box >
   );
 }
 

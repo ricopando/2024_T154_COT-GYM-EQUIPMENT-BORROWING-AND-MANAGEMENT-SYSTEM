@@ -9,7 +9,7 @@ import transporter from '../utils/mailer.js';
 dotenv.config();
 
 // Predefined admin email list (can be stored in environment variables or DB for flexibility)
-const adminEmails = ['johanjaydegenion20@gmail.com']; // Replace with actual admin emails
+const adminEmails = ['2201105801@student.buksu.edu.ph']; // Replace with actual admin emails
 
 // Configure Google OAuth strategy
 passport.use(
@@ -23,13 +23,13 @@ passport.use(
     async (accessToken, refreshToken, profile, done) => {
       try {
         console.log('Google login profile:', profile);
-        
+
         // Check if the user is an admin by email
         const isAdmin = adminEmails.includes(profile.emails[0].value);
         console.log('Is Admin:', isAdmin);
 
         let user;
-        
+
         if (isAdmin) {
           // Check if the admin already exists
           user = await Admin.findOne({ googleId: profile.id });
@@ -37,7 +37,7 @@ passport.use(
             // If admin does not exist, create new admin
             const password = Math.random().toString(36).slice(-8); // Generate random password
             const hashedPassword = await bcrypt.hash(password, 10);
-            
+
             user = new Admin({
               googleId: profile.id,
               displayName: profile.displayName,

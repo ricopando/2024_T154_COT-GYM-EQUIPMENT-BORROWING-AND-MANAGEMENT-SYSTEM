@@ -10,7 +10,7 @@ const Navbar = ({ userdata, onSidebarToggle, onLogout }) => {
   return (
     <HStack
       as="header"
-      bg="teal.500"
+      bg="#12203A"
       color="white"
       p={{ base: '4', md: '6' }}
       justify="space-between"

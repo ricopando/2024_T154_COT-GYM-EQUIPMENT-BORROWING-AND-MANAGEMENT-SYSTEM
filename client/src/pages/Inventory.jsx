@@ -63,7 +63,7 @@ const Inventory = () => {
 
   const toast = useToast();
   const navigate = useNavigate();
-  
+
   const { isOpen, onToggle } = useDisclosure(); // For toggling sidebar
   const isSidebarDefaultOpen = useBreakpointValue({ base: false, md: true }); // Sidebar open by default on larger screens
 
@@ -86,13 +86,13 @@ const Inventory = () => {
     const lowercasedQuery = searchQuery.toLowerCase();
     const filtered = searchQuery
       ? equipmentItems.filter(item =>
-          ['name', 'description', 'category', 'serialNumber']
-            .some(key => item[key].toLowerCase().includes(lowercasedQuery))
-        )
+        ['name', 'description', 'category', 'serialNumber']
+          .some(key => item[key].toLowerCase().includes(lowercasedQuery))
+      )
       : equipmentItems;
-    
+
     setFilteredItems(filtered);
-  
+
     // If the filteredItems length is less than currentPage * itemsPerPage, reset to the last valid page
     if (filtered.length <= (currentPage - 1) * itemsPerPage) {
       setCurrentPage(Math.ceil(filtered.length / itemsPerPage)); // Set to the last page
@@ -185,9 +185,9 @@ const Inventory = () => {
             <Text fontSize="2xl" fontWeight="bold" color="#2D3748" mb="6">Inventory Management</Text>
             <Flex justify="space-between" mb="4">
               <Input placeholder="Search all fields..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-              <Button colorScheme="teal" onClick={() => setIsModalOpen(true)}>Add New Equipment</Button>
+              <Button onClick={() => setIsModalOpen(true)} style={{ background: "#12203A", color: "white" }}>Add New Equipment</Button>
             </Flex>
-            <Table variant="striped" colorScheme="teal">
+            <Table variant="striped" style={{ color: "#12203A" }}>
               <Thead>
                 <Tr>
                   <Th>#</Th>
@@ -232,12 +232,12 @@ const Inventory = () => {
               </Tbody>
             </Table>
             <Flex justify="center" mt="4">
-  <ButtonGroup>
-    <Button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</Button>
-    <Button>{currentPage}</Button>
-    <Button disabled={(currentPage * itemsPerPage) >= filteredItems.length} onClick={() => setCurrentPage(currentPage + 1)}>Next</Button>
-  </ButtonGroup>
-</Flex>
+              <ButtonGroup>
+                <Button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</Button>
+                <Button>{currentPage}</Button>
+                <Button disabled={(currentPage * itemsPerPage) >= filteredItems.length} onClick={() => setCurrentPage(currentPage + 1)}>Next</Button>
+              </ButtonGroup>
+            </Flex>
           </Box>
         </Flex>
       </Flex>

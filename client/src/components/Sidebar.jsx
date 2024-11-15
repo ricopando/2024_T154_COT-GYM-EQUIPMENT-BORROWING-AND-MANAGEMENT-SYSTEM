@@ -15,7 +15,7 @@ const Sidebar = ({ userdata, isSidebarOpen }) => {
   return (
     <Box
       as="nav"
-      bg="teal.700"
+      bg="#12203A"
       color="white"
       width={sidebarWidth}
       height="100vh"
@@ -58,8 +58,8 @@ const SidebarLink = ({ icon, label, onClick }) => (
     leftIcon={<Icon as={icon} />}
     onClick={onClick}
     fontWeight="medium"
-    _hover={{ bg: 'teal.600' }}
-    _active={{ fontWeight: 'bold', bg: 'teal.800' }}
+  // _hover={{ bg: '#12203A' }}
+  // _active={{ fontWeight: 'bold', bg: 'teal.800' }}
   >
     {label}
   </Button>
