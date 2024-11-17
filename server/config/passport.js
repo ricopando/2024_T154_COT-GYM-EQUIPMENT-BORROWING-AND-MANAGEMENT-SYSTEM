@@ -9,7 +9,7 @@ import transporter from '../utils/mailer.js';
 dotenv.config();
 
 // Predefined admin email list (can be stored in environment variables or DB for flexibility)
-const adminEmails = ['2201105801@student.buksu.edu.ph']; // Replace with actual admin emails
+const adminEmails = ['2101104208@student.buksu.edu.ph']; // Replace with actual admin emails
 
 // Configure Google OAuth strategy
 passport.use(
