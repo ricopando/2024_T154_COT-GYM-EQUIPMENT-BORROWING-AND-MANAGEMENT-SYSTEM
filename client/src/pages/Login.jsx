@@ -8,6 +8,9 @@ import BuksuLogo from '../assets/BuksuLogo.png';
 import { HiEye, HiEyeOff } from 'react-icons/hi';
 import { HiOutlineSun, HiOutlineMoon } from 'react-icons/hi';
 
+
+import "./index.css"
+
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -100,20 +103,41 @@ const Login = () => {
     setRecaptchaToken(token);
   };
 
+
+
   return (
-    <Flex height="100vh" direction={{ base: 'column', md: 'row' }} position="relative">
+    <Flex className='container' height="100vh" direction={{ base: 'column', md: 'row' }} position="relative">
       {/* Left side - Login form */}
       <Flex
         flex="1"
         align="center"
-        justify="center"
+        justify="end"
         p={{ base: 4, md: 8 }}
         position="relative"
         zIndex="2"
+        style={{ marginRight: '10rem' }}
       >
+
+
+
+        {/* Right side - Image (for small screens with translucent and colored effect) */}
+        <Box
+          flex="1"
+          display={{ base: 'none', md: 'block' }}
+        >
+          <div className='contents'>
+            <h1>GYM EQUIPMENT MANAGEMENT AND BORROWING
+              SYSTEM</h1>
+            <div className="line">.</div>
+            <p>Find the equipment you need right here.
+              <br />Borrow wisely, return timely.</p>
+          </div>
+        </Box>
+
+
         <Box
           width="100%"
-          maxW="450px"
+          maxW="400px"
           p={{ base: 6, md: 8 }}
           boxShadow="md"
           bg={bgColor} // Background color changes based on light or dark mode
@@ -121,29 +145,30 @@ const Login = () => {
           position="relative"
           zIndex="2"
         >
-          <Flex direction="column" align="center" mb="8">
+          <Flex direction="column" align="center" mb="2">
             {/* Logo */}
-            <Image
+            {/* <Image
               src={BuksuLogo}
               alt="Logo"
               boxSize="100px"
               mb="1"
-            />
-            <Heading size="md" fontWeight="bold" color={textColor} >
+            /> */}
+            <Heading color={textColor} style={{ fontFamily: 'Poppins', textTransform: "uppercase", fontSize: "2rem" }} >
               Login
             </Heading>
-            <Text fontSize="sm" color="gray.500">
-              to continue to GEMBS
-            </Text>
+
           </Flex>
           <Stack spacing="1">
+
             {/* Google sign-in button */}
             <Button leftIcon={<FcGoogle />} colorScheme={buttonColorScheme} variant="outline" width="full" onClick={loginWithGoogle}>
               Continue with Google
             </Button>
-            <Divider my="4" />
+
+            <Divider my="4"></Divider>
+
             {/* Email Input */}
-            <FormControl id="email" isRequired>
+            <FormControl id="email" isRequired style={{ fontFamily: "Poppins" }}>
               <FormLabel fontSize="sm" color={textColor}>Email</FormLabel>
               <Input
                 type="email"
@@ -154,8 +179,9 @@ const Login = () => {
                 aria-label="Email address"
               />
             </FormControl>
+
             {/* Password Input with toggle visibility */}
-            <FormControl id="password" isRequired>
+            <FormControl id="password" isRequired style={{ fontFamily: "Poppins" }}>
               <FormLabel fontSize="sm" color={textColor}>Password</FormLabel>
               <InputGroup>
                 <Input
@@ -175,6 +201,8 @@ const Login = () => {
                 </InputRightElement>
               </InputGroup>
             </FormControl>
+
+
             {/* ReCAPTCHA */}
             <ReCAPTCHA
               sitekey="6LchNHgqAAAAAMgvERINOjrK9Bsmvquidlxht9vl"
@@ -182,6 +210,8 @@ const Login = () => {
               ref={recaptchaRef}
               style={{ transform: 'scale(0.8)', transformOrigin: '0 0', display: 'flex', justifyContent: "center", marginLeft: "4rem", marginTop: "1rem" }}
             />
+
+
             {/* Submit Button */}
             <Button
               colorScheme="blue"
@@ -189,65 +219,42 @@ const Login = () => {
               aria-label="Login"
               onClick={handleManualLogin}
               isLoading={loading}
+              style={{ fontFamily: "Poppins" }}
             >
               Login
             </Button>
+
+
           </Stack>
-          <Text mt="4" fontSize="xs" textAlign="center" color="gray.500">
+          <Text mt="4" fontSize="xs" textAlign="center" color="gray.500" style={{ fontFamily: "Poppins" }}>
             Not your computer? Use a private browsing window to login.
           </Text>
         </Box>
       </Flex>
 
-      {/* Right side - Image (for small screens with translucent and colored effect) */}
-      <Box
-        flex="1"
-        display={{ base: 'block', md: 'none' }}
-        position="absolute"
-        top="0"
-        left="0"
-        height="100%"
-        width="100%"
-        zIndex="-1"
-        backgroundImage={`url(${bgImage})`}
-        backgroundSize="cover"
-        backgroundPosition="center"
-        backgroundColor="rgba(0, 0, 0, 0.4)" // Apply a semi-transparent overlay on small screens
-        filter={imageFilter} // Conditional filter based on color mode
-      />
 
-      {/* Image for larger screens */}
+
+      {/* Toggle Dark Mode Button */}
+      {/* Toggle Dark Mode Button */}
+
+
       <Box
-        flex="1"
-        display={{ base: 'none', md: 'block' }}
+        position={{ base: 'absolute', md: 'fixed' }}
+        top={{ base: '16px', md: '16px' }}
+        left={{ base: '16px', md: '16px' }} // Moved to the left
+        zIndex="3"
       >
-        <Image
-          src={bgImage}
-          alt="Side Image"
-          objectFit="cover"
-          height="100%"
-          width="100%"
-          filter={imageFilter} // Conditional filter based on color mode
-        />
+        <Button
+          onClick={toggleColorMode}
+          size="sm"
+          variant="ghost" // Makes the button background transparent
+          colorScheme={colorMode === 'light' ? 'blue' : 'teal'}
+        >
+          {colorMode === 'light' ? <HiOutlineSun size={20} /> : <HiOutlineMoon size={20} />}
+        </Button>
       </Box>
 
-   {/* Toggle Dark Mode Button */}
-{/* Toggle Dark Mode Button */}
-<Box
-  position={{ base: 'absolute', md: 'fixed' }}
-  top={{ base: '16px', md: '16px' }}
-  left={{ base: '16px', md: '16px' }} // Moved to the left
-  zIndex="3"
->
-  <Button 
-    onClick={toggleColorMode} 
-    size="sm" 
-    variant="ghost" // Makes the button background transparent
-    colorScheme={colorMode === 'light' ? 'blue' : 'teal'}
-  >
-    {colorMode === 'light' ? <HiOutlineSun size={20} /> : <HiOutlineMoon size={20} />}
-  </Button>
-</Box>
+
     </Flex>
   );
 };
