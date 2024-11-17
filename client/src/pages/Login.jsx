@@ -6,6 +6,7 @@ import ReCAPTCHA from 'react-google-recaptcha';
 import LoginImg from '../assets/LoginImg.jpg';
 import BuksuLogo from '../assets/BuksuLogo.png';
 import { HiEye, HiEyeOff } from 'react-icons/hi';
+import { HiOutlineSun, HiOutlineMoon } from 'react-icons/hi';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -230,17 +231,23 @@ const Login = () => {
         />
       </Box>
 
-      {/* Toggle Dark Mode Button */}
-      <Box
-        position={{ base: 'absolute', md: 'fixed' }}
-        top={{ base: '16px', md: '16px' }}
-        right={{ base: '16px', md: '16px' }}
-        zIndex="3"
-      >
-        <Button onClick={toggleColorMode} size="sm" colorScheme={colorMode === 'light' ? 'blue' : 'teal'}>
-          {colorMode === 'light' ? 'Dark Mode' : 'Light Mode'}
-        </Button>
-      </Box>
+   {/* Toggle Dark Mode Button */}
+{/* Toggle Dark Mode Button */}
+<Box
+  position={{ base: 'absolute', md: 'fixed' }}
+  top={{ base: '16px', md: '16px' }}
+  left={{ base: '16px', md: '16px' }} // Moved to the left
+  zIndex="3"
+>
+  <Button 
+    onClick={toggleColorMode} 
+    size="sm" 
+    variant="ghost" // Makes the button background transparent
+    colorScheme={colorMode === 'light' ? 'blue' : 'teal'}
+  >
+    {colorMode === 'light' ? <HiOutlineSun size={20} /> : <HiOutlineMoon size={20} />}
+  </Button>
+</Box>
     </Flex>
   );
 };
