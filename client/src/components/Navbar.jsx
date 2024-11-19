@@ -1,21 +1,23 @@
 import React from 'react';
-import { Button, HStack, Text, IconButton, useBreakpointValue } from '@chakra-ui/react';
+import { Button, HStack, Text, IconButton, useBreakpointValue, useTheme } from '@chakra-ui/react';
 import { MdLogout } from 'react-icons/md';
 import { CiMenuFries } from 'react-icons/ci';
 
 const Navbar = ({ userdata, onSidebarToggle, onLogout }) => {
+  
   // Define the Navbar layout for different screen sizes
   const showMenuIcon = useBreakpointValue({ base: true, md: false });
 
   return (
     <HStack
       as="header"
-      bg="#12203A"
+      bg="blue.600"  // Set the background color to blue.600
       color="white"
       p={{ base: '4', md: '6' }}
       justify="space-between"
       align="center"
       spacing={{ base: '4', md: '6' }}
+      boxShadow="md"
     >
       {/* Menu Icon for mobile */}
       {showMenuIcon && (
@@ -23,7 +25,7 @@ const Navbar = ({ userdata, onSidebarToggle, onLogout }) => {
           icon={<CiMenuFries />}
           aria-label="Toggle Sidebar"
           variant="outline"
-          color="black"
+          color="white"  // Ensure the icon color is white
           onClick={onSidebarToggle}
         />
       )}

@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { Input, InputGroup, InputLeftElement, Icon } from '@chakra-ui/react';
+import { SearchIcon } from '@chakra-ui/icons'; // or any other icon you prefe
 import {
   Box,
   Flex,
@@ -6,7 +8,7 @@ import {
   Spinner,
   Alert,
   Button,
-  Input,
+ 
   useToast,
   Stack,
   FormControl,
@@ -29,7 +31,13 @@ import {
   IconButton,
   Center,
   useBreakpointValue,
-  useDisclosure
+  useDisclosure,
+  AlertDialog,
+  AlertDialogOverlay,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogBody,
+  AlertDialogFooter
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -60,6 +68,9 @@ const Inventory = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+
+  const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false); // State for alert dialog
+  const [itemToDelete, setItemToDelete] = useState(null); // Track the item to delete
 
   const toast = useToast();
   const navigate = useNavigate();
@@ -143,11 +154,12 @@ const Inventory = () => {
     }
   };
 
-  const handleDeleteEquipment = async (id) => {
+  const handleDeleteEquipment = async () => {
     try {
-      await axios.delete(`http://localhost:8000/api/equipment/${id}`);
-      setEquipmentItems(equipmentItems.filter(item => item._id !== id));
+      await axios.delete(`http://localhost:8000/api/equipment/${itemToDelete._id}`);
+      setEquipmentItems(equipmentItems.filter(item => item._id !== itemToDelete._id));
       toast({ title: 'Equipment deleted successfully.', status: 'success', isClosable: true });
+      setIsAlertDialogOpen(false); // Close dialog after deletion
     } catch {
       toast({ title: 'Failed to delete equipment.', status: 'error', isClosable: true });
     }
@@ -183,145 +195,195 @@ const Inventory = () => {
 
           <Box bg="#F7FAFC" flex="1" p="6" overflowY="auto">
             <Text fontSize="2xl" fontWeight="bold" color="#2D3748" mb="6">Inventory Management</Text>
-            <Flex justify="space-between" mb="4">
-              <Input placeholder="Search all fields..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+            <Flex  mb="4">
+            <InputGroup w="25%" ml="65%" mr="1%">
+            {/* Search Icon on the left */}
+            <InputLeftElement pointerEvents="none">
+              <SearchIcon color="gray.500" />
+            </InputLeftElement>
+            <Input
+              placeholder="Search all fields..."
+              placeholderColor="gray.500"
+              color="black"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              border="1px solid" // Always show the border
+              borderColor="blue.300" // Set a light gray border color
+              _hover={{ borderColor: "blue.500" }} // Change the border color on hover
+              _focus={{ borderColor: "blue.500" }} // Change the border color when focused
+            />
+          </InputGroup>
               <Button onClick={() => setIsModalOpen(true)} style={{ background: "#12203A", color: "white" }}>Add New Equipment</Button>
             </Flex>
-            <Table variant="striped" style={{ color: "#12203A" }}>
-              <Thead>
-                <Tr>
-                  <Th>#</Th>
-                  <Th>Name</Th>
-                  <Th>Description</Th>
-                  <Th>Category</Th>
-                  <Th>Serial Number</Th>
-                  <Th>Image</Th>
-                  <Th>Actions</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {paginatedItems.map((item, index) => (
-                  <Tr key={item._id}>
-                    <Td>{(currentPage - 1) * itemsPerPage + index + 1}</Td>
-                    <Td>{item.name}</Td>
-                    <Td>{item.description}</Td>
-                    <Td>{item.category}</Td>
-                    <Td>{item.serialNumber}</Td>
-                    <Td><img src={item.image} alt={item.name} width="50" height="50" /></Td>
-                    <Td>
-                      <ButtonGroup>
-                        <IconButton
-                          icon={<MdEdit />}
-                          onClick={() => {
-                            setIsEditMode(true);
-                            setSelectedItem(item);
-                            setNewEquipment(item);
-                            setIsModalOpen(true);
-                          }}
-                          colorScheme="blue"
-                        />
-                        <IconButton
-                          icon={<MdDelete />}
-                          onClick={() => handleDeleteEquipment(item._id)}
-                          colorScheme="red"
-                        />
-                      </ButtonGroup>
-                    </Td>
+
+            {/* Table with fixed header and scrollable body */}
+            <Box maxHeight="620px" overflowY="auto">
+              <Table  style={{ color: "#12203A", tableLayout: "fixed" }}>
+                <Thead position="sticky" top="0" zIndex="1" bg="white">
+                  <Tr>
+                    <Th color="black">#</Th>
+                    <Th color="black">Name</Th>
+                    <Th color="black">Description</Th>
+                    <Th color="black">Category</Th>
+                    <Th color="black">Serial Number</Th>
+                    <Th color="black">Image</Th>
+                    <Th color="black">Actions</Th>
                   </Tr>
-                ))}
-              </Tbody>
-            </Table>
-            <Flex justify="center" mt="4">
-              <ButtonGroup>
-                <Button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</Button>
-                <Button>{currentPage}</Button>
-                <Button disabled={(currentPage * itemsPerPage) >= filteredItems.length} onClick={() => setCurrentPage(currentPage + 1)}>Next</Button>
-              </ButtonGroup>
+                </Thead>
+                <Tbody>
+                  {paginatedItems.map((item, index) => (
+                    <Tr key={item._id}>
+                      <Td>{(currentPage - 1) * itemsPerPage + index + 1}</Td>
+                      <Td>{item.name}</Td>
+                      <Td>{item.description}</Td>
+                      <Td>{item.category}</Td>
+                      <Td>{item.serialNumber}</Td>
+                      <Td><img src={item.image} alt={item.name} width="50" height="50" /></Td>
+                      <Td>
+                        <ButtonGroup>
+                          <IconButton
+                            icon={<MdEdit />}
+                            onClick={() => {
+                              setIsEditMode(true);
+                              setSelectedItem(item);
+                              setNewEquipment(item);
+                              setIsModalOpen(true);
+                            }}
+                            colorScheme="blue"
+                          />
+                          <IconButton
+                            icon={<MdDelete />}
+                            onClick={() => {
+                              setItemToDelete(item);
+                              setIsAlertDialogOpen(true);
+                            }}
+                           colorScheme='red'
+                          />
+                        </ButtonGroup>
+                      </Td>
+                    </Tr>
+                  ))}
+                </Tbody>
+              </Table>
+            </Box>
+
+            <Flex justify="space-between" mt="4">
+              <Button
+                onClick={() => setCurrentPage(prevPage => Math.max(1, prevPage - 1))}
+                disabled={currentPage === 1}
+                color="white"
+               bg="#12203A"
+              >Previous</Button>
+              <Button
+                onClick={() => setCurrentPage(prevPage => Math.min(Math.ceil(filteredItems.length / itemsPerPage), prevPage + 1))}
+                disabled={currentPage === Math.ceil(filteredItems.length / itemsPerPage)}
+                color="white"
+                bg="#12203A"
+              >Next</Button>
             </Flex>
+
+            {/* Add/Edit Modal */}
+            <Modal isOpen={isModalOpen} onClose={closeModal}>
+              <ModalOverlay />
+              <ModalContent>
+                <ModalHeader>{isEditMode ? 'Edit Equipment' : 'Add Equipment'}</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody>
+                  <Stack spacing="4">
+                    <FormControl>
+                      <FormLabel>Name</FormLabel>
+                      <Input
+                        value={newEquipment.name}
+                        onChange={(e) => setNewEquipment({ ...newEquipment, name: e.target.value })}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Description</FormLabel>
+                      <Input
+                        value={newEquipment.description}
+                        onChange={(e) => setNewEquipment({ ...newEquipment, description: e.target.value })}
+                      />
+                    </FormControl>
+                    <FormControl>
+  <FormLabel>Category</FormLabel>
+  <Select
+    value={newEquipment.category}
+    onChange={(e) => setNewEquipment({ ...newEquipment, category: e.target.value })} // Ensure state updates
+  >
+    <option value="Electronics">Electronics</option>
+    <option value="Furniture">Furniture</option>
+    <option value="Sports">Sports</option> {/* Corrected category name */}
+  </Select>
+</FormControl>
+                    <FormControl>
+                      <FormLabel>Serial Number</FormLabel>
+                      <Input
+                        value={newEquipment.serialNumber}
+                        onChange={(e) => setNewEquipment({ ...newEquipment, serialNumber: e.target.value })}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Image URL</FormLabel>
+                      <Input
+                        value={newEquipment.image}
+                        onChange={(e) => setNewEquipment({ ...newEquipment, image: e.target.value })}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Availability Status</FormLabel>
+                      <Select
+                        value={newEquipment.availabilityStatus}
+                        onChange={(e) => setNewEquipment({ ...newEquipment, availabilityStatus: e.target.value })}
+                      >
+                        <option value="Available">Available</option>
+                        <option value="Unavailable">Unavailable</option>
+                      </Select>
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Model</FormLabel>
+                      <Input
+                        value={newEquipment.model}
+                        onChange={(e) => setNewEquipment({ ...newEquipment, model: e.target.value })}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Additional Info</FormLabel>
+                      <Input
+                        value={newEquipment.additionalInfo}
+                        onChange={(e) => setNewEquipment({ ...newEquipment, additionalInfo: e.target.value })}
+                      />
+                    </FormControl>
+                  </Stack>
+                </ModalBody>
+                <ModalFooter>
+                  <Button variant="outline" onClick={closeModal} mr="2%">Cancel</Button>
+                  <Button colorScheme="blue" onClick={handleAddOrEditEquipment}>
+                    {isEditMode ? 'Update Equipment' : 'Add Equipment'}
+                  </Button>
+                </ModalFooter>
+              </ModalContent>
+            </Modal>
+
+            {/* Alert Dialog for Deletion */}
+            <AlertDialog isOpen={isAlertDialogOpen} onClose={() => setIsAlertDialogOpen(false)}>
+              <AlertDialogOverlay>
+                <AlertDialogContent>
+                  <AlertDialogHeader>Delete Equipment</AlertDialogHeader>
+                  <AlertDialogBody>
+                    Are you sure you want to delete this item?
+                  </AlertDialogBody>
+                  <AlertDialogFooter>
+                    <Button onClick={() => setIsAlertDialogOpen(false)}>Cancel</Button>
+                    <Button colorScheme="red" onClick={handleDeleteEquipment} ml={3}>
+                      Delete
+                    </Button>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialogOverlay>
+            </AlertDialog>
           </Box>
         </Flex>
       </Flex>
-
-      <Modal isOpen={isModalOpen} onClose={closeModal}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>{isEditMode ? 'Edit Equipment' : 'Add New Equipment'}</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Stack spacing={4}>
-              <FormControl>
-                <FormLabel>Name</FormLabel>
-                <Input
-                  value={newEquipment.name}
-                  onChange={(e) => setNewEquipment({ ...newEquipment, name: e.target.value })}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Description</FormLabel>
-                <Input
-                  value={newEquipment.description}
-                  onChange={(e) => setNewEquipment({ ...newEquipment, description: e.target.value })}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Category</FormLabel>
-                <Select
-                  value={newEquipment.category}
-                  onChange={(e) => setNewEquipment({ ...newEquipment, category: e.target.value })}
-                >
-                  <option value="Electronics">Electronics</option>
-                  <option value="Furniture">Furniture</option>
-                  <option value="Sports">Sports</option>
-                </Select>
-              </FormControl>
-              <FormControl>
-                <FormLabel>Serial Number</FormLabel>
-                <Input
-                  value={newEquipment.serialNumber}
-                  onChange={(e) => setNewEquipment({ ...newEquipment, serialNumber: e.target.value })}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Model</FormLabel>
-                <Input
-                  value={newEquipment.model}
-                  onChange={(e) => setNewEquipment({ ...newEquipment, model: e.target.value })}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Image URL</FormLabel>
-                <Input
-                  value={newEquipment.image}
-                  onChange={(e) => setNewEquipment({ ...newEquipment, image: e.target.value })}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Availability Status</FormLabel>
-                <Select
-                  value={newEquipment.availabilityStatus}
-                  onChange={(e) => setNewEquipment({ ...newEquipment, availabilityStatus: e.target.value })}
-                >
-                  <option value="Available">Available</option>
-                  <option value="Borrow">Borrow</option>
-                </Select>
-              </FormControl>
-              <FormControl>
-                <FormLabel>Additional Information</FormLabel>
-                <Input
-                  value={newEquipment.additionalInfo}
-                  onChange={(e) => setNewEquipment({ ...newEquipment, additionalInfo: e.target.value })}
-                />
-              </FormControl>
-            </Stack>
-          </ModalBody>
-          <ModalFooter>
-            <Button colorScheme="teal" onClick={handleAddOrEditEquipment}>
-              {isEditMode ? 'Save Changes' : 'Add Equipment'}
-            </Button>
-            <Button variant="ghost" onClick={closeModal}>Cancel</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
     </Box>
   );
 };

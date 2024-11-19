@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Flex, Box, Text, Spinner, Alert, useBreakpointValue, Stack, useDisclosure } from '@chakra-ui/react';
+import { Flex, Box, Text, Spinner, Alert, Stack, useBreakpointValue } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { GoAlertFill } from 'react-icons/go';
@@ -12,10 +12,9 @@ const AdminDashBoard = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const { isOpen, onToggle } = useDisclosure(); // Use Chakra's useDisclosure for toggle functionality
-  const navigate = useNavigate();
 
   const isSidebarDefaultOpen = useBreakpointValue({ base: false, md: true });
+  const navigate = useNavigate();
 
   useEffect(() => {
     setIsSidebarOpen(isSidebarDefaultOpen);
@@ -45,7 +44,6 @@ const AdminDashBoard = () => {
   }, []);
 
   const handleSidebarToggle = () => setIsSidebarOpen(!isSidebarOpen);
-
   const handleLogout = () => navigate("/");
 
   if (loading) {
@@ -93,7 +91,6 @@ const AdminDashBoard = () => {
             flex="1"
             p="6"
             overflowY="auto"
-            borderRadius="lg"
             boxShadow="md"
             maxH="100vh"
           >

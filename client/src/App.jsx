@@ -5,11 +5,7 @@ import AdminDashBoard from './pages/AdminDashBoard';
 import Inventory from './pages/Inventory';
 import UserDashBoard from './pages/UserDashBoard';
 
-
-
 function App() {
-  
-  
   return (
   <>
     <Routes>
@@ -17,6 +13,7 @@ function App() {
       <Route path="/admin-dashboard" element={<AdminDashBoard />} />
       <Route path="/user-dashboard" element={<UserDashBoard />} />
       <Route path="/admin-inventory" element={<Inventory />} /> {/* Inventory page */}
+
     </Routes>
      </>  
   );
