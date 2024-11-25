@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Borrower's Slip</title>
+  <style>
+    html, body {
+      font-family: 'Times New Roman', Times, serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f9f9f9;
+    }
+    .container {
+      width: 210mm;
+      height: 297mm;
+      margin: auto;
+      padding: 20mm;
+      box-sizing: border-box;
+      background: #fff;
+      border: 1px solid #ddd;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .header img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin-right: 20px;
+    }
+    .header-content {
+      text-align: center;
+    }
+    .header-content h1, .header-content p {
+      color: #000;
+    }
+    .header-content h1 {
+      font-size: 22px;
+      margin: 0;
+      color: #333;
+    }
+    .header-content p {
+      margin: 5px 0;
+      font-size: 12px;
+      color: #000;
+    }
+    .document-info {
+      margin-bottom: 20px;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 10px;
+    }
+    .document-info p {
+      margin: 0;
+      font-size: 14px;
+      font-weight: bold;
+      color: #444;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      font-size: 12px;
+      color: #333;
+    }
+    table th, table td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+    table th {
+      background-color: #f4f4f4;
+    }
+    .terms {
+      font-size: 12px;
+      line-height: 1.6;
+      color: #555;
+    }
+    .terms p {
+      margin: 0;
+    }
+    .terms strong {
+      color: #333;
+    }
+    .signatures {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .signatures div {
+      text-align: center;
+      width: 30%;
+      font-size: 12px;
+      color: #333;
+    }
+    .signatures div p {
+      margin: 10px 0;
+      border-top: 1px solid #ccc;
+      padding-top: 5px;
+    }
+    .footer {
+      margin-top: 20px;
+      font-size: 12px;
+      text-align: center;
+      color: #666;
+    }
+    .box {
+      margin-bottom: 0;
+      display: flex;
+      align-items: center;
+    }
+    .center-text {
+      text-align: center;
+      margin-top: 0;
+    }
+    strong {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="box">
+        <img style="margin-right: 60px;" src="https://th.bing.com/th/id/OIP.081z0bkyijEfgDcNKjeS5AHaHa?rs=1&pid=ImgDetMain">
+        <div class="header-content">
+          <h1>BUKIDNON STATE UNIVERSITY</h1>
+          <p>Fortich Street, Malaybalay City, Bukidnon 8700</p>
+          <p>Tel: (088) 813-5661 to 5663 | Telefax: (088) 813-2717 | <a href="http://www.buksu.edu.ph" target="_blank" rel="noopener noreferrer">www.buksu.edu.ph</a></p>  
+        </div>
+      </div>
+    </div>
+    <hr style="border: 1px solid black;">
+    <p class="center-text"><strong>OFFICE OF THE SPORTS PROGRAM</strong></p>
+    <p class="center-text"><strong>BORROWER’S SLIP</strong></p>
+    <div >
+      <label style="margin-right: 10px;">
+        <input type="checkbox" name="category" value="coach-trainer" >
+        Coach/Trainer
+      </label>
+      <label style="margin-right: 10px;">
+        <input type="checkbox" name="category" value="athlete">
+        Athlete
+      </label>
+      <label style="margin-right: 10px;">
+        <input type="checkbox" name="category" value="regular-student">
+        Regular Student
+      </label>
+      <label style="margin-right: 10px;">
+        <input type="checkbox" name="category" value="buksu-personnel">
+        BukSU Personnel
+      </label>
+      <label style="margin-right: 10px;">
+        <input type="checkbox" name="category" value="pe-instructor">
+        P.E. Instructor
+      </label>
+    </div>
+    <div style="display: flex; flex-direction: column; padding-top: 10px;">
+      <label style="margin-right: 10px; margin-top: 5px;">
+        <input type="checkbox" name="category" value="pe-instructor">
+        Others (Office/Agency): ________________________________________.
+      </label>
+      <div style="display: flex; flex-direction: column; padding-top: 10px;">
+        <label style="margin-right: 10px; margin-top: 5px;">
+          <input type="checkbox" name="category" value="pe-instructor">
+          For Custodian:: ________________________________________.
+          <br>
+          Availability of Equipment:
+          <label style="margin-right: 10px;">
+            <input type="checkbox" name="availability" value="yes">
+            YES
+          </label>
+          <label style="margin-right: 10px;">
+            <input type="checkbox" name="availability" value="no">
+            NO
+          </label>
+          <div style="display: flex; flex-direction: column; padding-top: 10px;">
+            <label style="margin-right: 10px; margin-top: 5px;">
+              <input type="checkbox" name="category" value="pe-instructor">
+              For Borrower:________________________________________.
+              <br>I acknowledge to have received from the OFFICE OF SPORTS PROGRAM of Bukidnon State 
+              University the following:
+            </label>
+        </label>
+    </div>
+   
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Item Description</th>
+          <th>Category</th>
+          <th>Time/Date (Start)</th>
+          <th>Time/Date (Expected to return)</th>
+          <th>Time/Date (Returned)</th>
+          <th>Remarks</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="terms">
+      <p><strong>Terms and Conditions:</strong></p>
+      <p>That I (the borrower) shall:</p>
+      <p>1. Personally return <strong>IMMEDIATELY</strong> after use the borrowed items listed above to make it/them available for other users.</p>
+      <p>2. Be held responsible for <strong>LOSS & DAMAGES</strong> while the items are in my custody; and subsequently,</p>
+      <p>3. Willing to <strong>REPLACE</strong> the item(s) lost or damaged.</p>
+      <p style="margin-top: 10px;"><strong>Note:</strong></p>
+      <p>1.For instructional use, students are <strong>not allowed</strong> to borrow equipment/materials for the class. The instructor shall receive the item/s and sign as the borrower.</p>
+      <p>2.For practice/training, students shall submit and present your valid school identification card in borrowing equipment, and the instructor shall also receive the item/s and sign as the borrower.</p>
+      <p>3.Releasing and returning of items are within school days <strong>ONLY</strong> from <strong>8:00 AM to 3:00 PM</strong>.</p>
+    </div>
+
+   
+
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Borrowed by:</th>
+          <th>Issued by:</th>
+          <th>Noted:</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Signature </td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td></td>
+          <td></td>
+          <td>CRISTITITO P. ORNOPIA</td>
+        </tr>
+        <tr>
+          <td>Date:</td>
+          <td></td>
+          <td>Equipment Custodian</td>
+          <td>Coordinator, Sports Program</td>
+        </tr>
+        <tr>
+          <td>Gmail</td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+       
+      </tbody>
+    </table>
+    <div class="footer" style="display: flex; justify-content: space-between; margin-top: 20%;">
+      <p>Document Code: OSP-F-001</p>
+      <p>  Revision No: 0 </p> 
+        <p> Issue No. 1 </p> 
+        <p>Issue Date: 4/23/2021 </p> 
+        <p>Page 1 of 1</p> 
+    </div>
+  </div>
+</body>
+</html>
