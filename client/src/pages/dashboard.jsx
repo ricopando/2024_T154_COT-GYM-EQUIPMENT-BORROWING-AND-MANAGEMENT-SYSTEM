@@ -61,6 +61,20 @@ const Dashboard = () => {
     },
   };
 
+  // Move fetchAdvice outside of useEffect
+  const handleFetchAdvice = async () => {
+    try {
+      const response = await axios.get("https://api.adviceslip.com/advice", {
+        withCredentials: false,
+        headers: { Accept: "application/json" },
+      });
+      setAdviceData(response.data);
+    } catch (error) {
+      console.error("Error fetching advice:", error);
+      setAdviceData({ slip: { advice: "Failed to load advice." } });
+    }
+  };
+
   useEffect(() => {
     const fetchEquipmentCount = async () => {
       try {
@@ -139,31 +153,8 @@ const Dashboard = () => {
     fetchEquipmentCount();
     fetchAllBorrowTransactions();
     fetchWeatherData();
+    handleFetchAdvice();
   }, []);
-
-  useEffect(() => {
-    const fetchAdvice = async () => {
-      try {
-        const response = await axios.get("https://api.adviceslip.com/advice", {
-          withCredentials: false,
-          headers: { Accept: "application/json" },
-        });
-        setAdviceData(response.data);
-      } catch (error) {
-        console.error("Error fetching advice:", error);
-        setAdviceData({ slip: { advice: "Failed to load advice." } });
-      }
-    };
-
-    // Initial fetch
-    fetchAdvice();
-
-    // Set up interval for every 5 seconds
-    const intervalId = setInterval(fetchAdvice, 5000);
-
-    // Cleanup interval on component unmount
-    return () => clearInterval(intervalId);
-  }, []); // Empty dependency array means this effect runs once on mount
 
   return (
     <div className="flex h-screen">
@@ -257,12 +248,16 @@ const Dashboard = () => {
                 Daily Advice
               </h2>
               <div className="flex flex-col">
-                <div className="min-h-[80px] flex items-center">
-                  <p className="text-gray-600 italic text-lg leading-relaxed">
-                    "{adviceData.slip.advice}"
-                  </p>
-                </div>
-                <div className="flex justify-end mt-2"></div>
+                <p className="text-gray-600 italic">
+                  "{adviceData.slip.advice}"
+                </p>
+                <button
+                  onClick={handleFetchAdvice}
+                  className="mt-4 text-sm text-blue-500 hover:text-blue-700 self-end"
+                  aria-label="Get new advice"
+                >
+                  Get New Advice
+                </button>
               </div>
             </div>
           </div>

@@ -10,7 +10,6 @@ const ProductsData = [
     title: "Degenion, Johan Jay E.",
     color: "Backend",
     aosDelay: "0",
-
   },
   {
     id: 2,
@@ -33,7 +32,6 @@ const ProductsData = [
     color: "Designer",
     aosDelay: "600",
   },
-
 ];
 
 const Developers = () => {
@@ -42,11 +40,9 @@ const Developers = () => {
       <div className="container">
         {/* Header section */}
         <div className="text-center mb-10 max-w-[600px] mx-auto">
-         
           <h1 data-aos="fade-up" className="text-3xl font-bold">
-            Developers
+            DEVELOPERS
           </h1>
-          
         </div>
         {/* Body section */}
         <div>
@@ -67,7 +63,6 @@ const Developers = () => {
                 <div>
                   <h3 className="font-semibold">{data.title}</h3>
                   <p className="text-sm text-gray-600">{data.color}</p>
-                 
                 </div>
               </div>
             ))}

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import DataTable from 'react-data-table-component';
+import DataTable from "react-data-table-component";
 import { toast } from "react-hot-toast";
 import Navbar from "../components/Navbar/Navbar";
-import StudentBorrowerSlipPreview from '../components/BorrowerSlipPreview';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
+import StudentBorrowerSlipPreview from "../components/BorrowerSlipPreview";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 const Borrow = () => {
   const [borrowedItems, setBorrowedItems] = useState([]);
@@ -19,7 +19,10 @@ const Borrow = () => {
   const [imageUrl, setImageUrl] = useState("");
   const [confirmCancelDialogOpen, setConfirmCancelDialogOpen] = useState(false);
   const [itemToCancel, setItemToCancel] = useState(null);
-  const [confirmTransactionCancelDialogOpen, setConfirmTransactionCancelDialogOpen] = useState(false);
+  const [
+    confirmTransactionCancelDialogOpen,
+    setConfirmTransactionCancelDialogOpen,
+  ] = useState(false);
   const [transactionToCancel, setTransactionToCancel] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [borrowerSlipModalOpen, setBorrowerSlipModalOpen] = useState(false);
@@ -28,7 +31,7 @@ const Borrow = () => {
   useEffect(() => {
     AOS.init({
       duration: 1000,
-      once: true
+      once: true,
     });
   }, []);
 
@@ -37,11 +40,16 @@ const Borrow = () => {
 
     const fetchBorrowedItemsByUser = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/api/borrow-items/user/actual-user-id", {
-          withCredentials: true,
-        });
+        const response = await axios.get(
+          "http://localhost:8000/api/borrow-items/user/actual-user-id",
+          {
+            withCredentials: true,
+          }
+        );
         if (isMounted) {
-          const filteredItems = response.data.filter(item => item.items && item.items.length > 0);
+          const filteredItems = response.data.filter(
+            (item) => item.items && item.items.length > 0
+          );
           setBorrowedItems(filteredItems);
         }
       } catch (error) {
@@ -62,7 +70,11 @@ const Borrow = () => {
   }, []);
 
   useEffect(() => {
-    if (!deleteLoading && equipmentDetails && equipmentDetails.items.length === 0) {
+    if (
+      !deleteLoading &&
+      equipmentDetails &&
+      equipmentDetails.items.length === 0
+    ) {
       closeEquipmentModal();
     }
   }, [deleteLoading, equipmentDetails]);
@@ -70,12 +82,17 @@ const Borrow = () => {
   const handleDeleteTransaction = async (itemId) => {
     setDeleteLoading(true);
     try {
-      const response = await axios.delete(`http://localhost:8000/api/borrow-items/${itemId}`, {
-        withCredentials: true,
-      });
+      const response = await axios.delete(
+        `http://localhost:8000/api/borrow-items/${itemId}`,
+        {
+          withCredentials: true,
+        }
+      );
 
       if (response.status === 200) {
-        setBorrowedItems((prevItems) => prevItems.filter((item) => item._id !== itemId));
+        setBorrowedItems((prevItems) =>
+          prevItems.filter((item) => item._id !== itemId)
+        );
         toast.success("Transaction successfully deleted.");
       } else {
         toast.error("Failed to delete transaction.");
@@ -91,33 +108,47 @@ const Borrow = () => {
   const handleDeleteItemFromArray = async (borrowedItemId, itemId) => {
     setDeleteLoading(true);
     try {
-      const response = await axios.delete(`http://localhost:8000/api/borrow-items/${borrowedItemId}/item/${itemId}`, {
-        withCredentials: true,
-      });
+      const response = await axios.delete(
+        `http://localhost:8000/api/borrow-items/${borrowedItemId}/item/${itemId}`,
+        {
+          withCredentials: true,
+        }
+      );
 
       if (response.status === 200) {
         setBorrowedItems((prevItems) =>
-          prevItems.map((item) => {
-            if (item._id === borrowedItemId) {
-              const updatedItems = item.items.filter((equipmentItem) => equipmentItem._id !== itemId);
-              if (updatedItems.length === 0) {
-                handleDeleteTransaction(borrowedItemId);
-                return null;
+          prevItems
+            .map((item) => {
+              if (item._id === borrowedItemId) {
+                const updatedItems = item.items.filter(
+                  (equipmentItem) => equipmentItem._id !== itemId
+                );
+                if (updatedItems.length === 0) {
+                  handleDeleteTransaction(borrowedItemId);
+                  return null;
+                }
+                return { ...item, items: updatedItems };
               }
-              return { ...item, items: updatedItems };
-            }
-            return item;
-          }).filter(Boolean)
+              return item;
+            })
+            .filter(Boolean)
         );
 
         if (equipmentDetails && equipmentDetails._id === borrowedItemId) {
-          const updatedEquipmentItems = equipmentDetails.items.filter((equipmentItem) => equipmentItem._id !== itemId);
-          setEquipmentDetails({ ...equipmentDetails, items: updatedEquipmentItems });
+          const updatedEquipmentItems = equipmentDetails.items.filter(
+            (equipmentItem) => equipmentItem._id !== itemId
+          );
+          setEquipmentDetails({
+            ...equipmentDetails,
+            items: updatedEquipmentItems,
+          });
         }
 
         setEquipmentItems((prevItems) =>
           prevItems.map((equipmentItem) =>
-            equipmentItem._id === itemId ? { ...equipmentItem, availabilityStatus: 'Available' } : equipmentItem
+            equipmentItem._id === itemId
+              ? { ...equipmentItem, availabilityStatus: "Available" }
+              : equipmentItem
           )
         );
 
@@ -141,7 +172,10 @@ const Borrow = () => {
   const confirmCancel = async () => {
     if (itemToCancel) {
       try {
-        await handleDeleteItemFromArray(itemToCancel.borrowedItemId, itemToCancel.itemId);
+        await handleDeleteItemFromArray(
+          itemToCancel.borrowedItemId,
+          itemToCancel.itemId
+        );
         setItemToCancel(null);
         setConfirmCancelDialogOpen(false);
       } catch (error) {
@@ -204,7 +238,7 @@ const Borrow = () => {
   };
 
   const openBorrowerSlipPreview = (transaction) => {
-    console.log('Selected Transaction:', transaction);
+    console.log("Selected Transaction:", transaction);
     setSelectedTransaction(transaction);
     setBorrowerSlipModalOpen(true);
   };
@@ -217,22 +251,22 @@ const Borrow = () => {
   const columns = [
     {
       name: "Transaction ID",
-      selector: row => row._id,
+      selector: (row) => row._id,
       sortable: true,
     },
     {
       name: "Transaction Date",
-      selector: row => new Date(row.createdAt).toLocaleDateString(),
+      selector: (row) => new Date(row.createdAt).toLocaleDateString(),
       sortable: true,
     },
     {
       name: "Transaction Time",
-      selector: row => new Date(row.createdAt).toLocaleTimeString(),
+      selector: (row) => new Date(row.createdAt).toLocaleTimeString(),
       sortable: true,
     },
     {
       name: "Equipment",
-      cell: row => (
+      cell: (row) => (
         <button
           className="text-blue-500 hover:underline"
           onClick={() => openEquipmentModal(row)}
@@ -243,7 +277,7 @@ const Borrow = () => {
     },
     {
       name: "Form",
-      cell: row => (
+      cell: (row) => (
         <button
           className="text-green-500 hover:underline"
           onClick={() => openBorrowerSlipPreview(row)}
@@ -254,48 +288,48 @@ const Borrow = () => {
     },
     {
       name: "Status",
-      selector: row => row.status,
+      selector: (row) => row.status,
       sortable: true,
     },
     {
       name: "Action",
-      cell: row => (
-        row.status !== 'Approved' && row.status !== 'Returned' && (
+      cell: (row) =>
+        row.status !== "Approved" &&
+        row.status !== "Returned" && (
           <button
             className="text-red-500 hover:underline"
             onClick={() => handleCancelTransaction(row._id)}
           >
             Cancel Transaction
           </button>
-        )
-      ),
+        ),
     },
   ];
 
   const equipmentDetailsColumns = [
     {
       name: "Name",
-      selector: row => row.equipment.name,
+      selector: (row) => row.equipment.name,
       sortable: true,
     },
     {
       name: "Serial No",
-      selector: row => row.equipment.serialNumber,
+      selector: (row) => row.equipment.serialNumber,
       sortable: true,
     },
     {
       name: "Model",
-      selector: row => row.equipment.model,
+      selector: (row) => row.equipment.model,
       sortable: true,
     },
     {
       name: "Category",
-      selector: row => row.equipment.category,
+      selector: (row) => row.equipment.category,
       sortable: true,
     },
     {
       name: "Image",
-      cell: row => (
+      cell: (row) => (
         <button
           className="text-blue-500 hover:underline"
           onClick={() => openImageModal(row.equipment.image)}
@@ -306,40 +340,54 @@ const Borrow = () => {
     },
     {
       name: "Borrow Date",
-      selector: row => new Date(row.borrowDate).toLocaleString(),
+      selector: (row) => new Date(row.borrowDate).toLocaleString(),
       sortable: true,
     },
     {
       name: "Return Date",
-      selector: row => new Date(row.returnDate).toLocaleDateString(),
+      selector: (row) => new Date(row.returnDate).toLocaleDateString(),
       sortable: true,
     },
     {
       name: "Status",
-      selector: row => row.status,
+      selector: (row) => row.status,
       sortable: true,
     },
     {
       name: "Action",
-      cell: row => (
-        row.status !== 'Approved' && row.status !== 'Returned' && (
+      cell: (row) =>
+        row.status !== "Approved" &&
+        row.status !== "Returned" && (
           <button
             className="text-red-500 hover:underline"
             onClick={() => handleCancel(equipmentDetails._id, row._id)}
           >
             Cancel Item
           </button>
-        )
-      ),
+        ),
     },
   ];
 
   return (
     <div className="bg-white dark:bg-gray-900 dark:text-white duration-200">
       <Navbar />
-      <div className="container mx-auto px-4">
-        <div className="text-left mt-5 mb-12">
-          <h1 data-aos="fade-up" className="text-5xl font-extrabold tracking-tight">Borrow</h1>
+      <div className="container mx-auto px-4 pt-8">
+        <div className="text-left mt-8 mb-16">
+          <h1
+            data-aos="fade-up"
+            className="text-5xl font-bold text-gray-800 dark:text-white relative inline-block
+            after:content-[''] after:block after:w-1/2 after:h-1 after:bg-primary
+            after:mt-2 after:rounded-full"
+          >
+            BORROWED ITEMS
+          </h1>
+          <p
+            data-aos="fade-up"
+            data-aos-delay="100"
+            className="text-gray-600 dark:text-gray-400 mt-4 text-lg"
+          >
+            Track and manage your borrowed equipment
+          </p>
         </div>
 
         {loading || actionLoading ? (
@@ -356,30 +404,30 @@ const Borrow = () => {
 
         {deleteLoading && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-             <div className="bg-white p-6 rounded shadow-lg flex items-center space-x-4">
-      <svg
-        className="animate-spin h-5 w-5 text-red-500"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-      >
-        <circle
-          className="opacity-25"
-          cx="12"
-          cy="12"
-          r="10"
-          stroke="currentColor"
-          strokeWidth="4"
-        ></circle>
-        <path
-          className="opacity-75"
-          fill="currentColor"
-          d="M4 12a8 8 0 018-8v8H4z"
-        ></path>
-      </svg>
-      <span className="text-lg font-medium">Deleting...</span>
-    </div>
+            <div className="bg-white p-6 rounded shadow-lg flex items-center space-x-4">
+              <svg
+                className="animate-spin h-5 w-5 text-red-500"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8H4z"
+                ></path>
+              </svg>
+              <span className="text-lg font-medium">Deleting...</span>
+            </div>
           </div>
         )}
 
@@ -387,13 +435,25 @@ const Borrow = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold dark:text-white">Equipment Details</h2>
+                <h2 className="text-2xl font-bold dark:text-white">
+                  Equipment Details
+                </h2>
                 <button
                   className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100"
                   onClick={closeEquipmentModal}
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
@@ -432,7 +492,10 @@ const Borrow = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
             <div className="bg-white p-6 rounded-lg max-w-md w-full">
               <h2 className="text-xl font-bold mb-4">Confirm Cancellation</h2>
-              <p>Are you sure you want to cancel this item? This action cannot be undone.</p>
+              <p>
+                Are you sure you want to cancel this item? This action cannot be
+                undone.
+              </p>
               <div className="mt-4 flex justify-end">
                 <button
                   className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded mr-2"
@@ -454,8 +517,13 @@ const Borrow = () => {
         {confirmTransactionCancelDialogOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
             <div className="bg-white p-6 rounded-lg max-w-md w-full">
-              <h2 className="text-xl font-bold mb-4">Confirm Transaction Cancellation</h2>
-              <p>Are you sure you want to cancel this transaction? This action cannot be undone.</p>
+              <h2 className="text-xl font-bold mb-4">
+                Confirm Transaction Cancellation
+              </h2>
+              <p>
+                Are you sure you want to cancel this transaction? This action
+                cannot be undone.
+              </p>
               <div className="mt-4 flex justify-end">
                 <button
                   className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded mr-2"

@@ -5,11 +5,13 @@ import { CgGym } from "react-icons/cg";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 
+import buksuLogoW from "../../assets/buksuLogoW.png"; //logo
+
 const Menu = [
-  { id: 1, name: "Home", link: "/home" },
-  { id: 2, name: "Catalog", link: "/catalog" },
-  { id: 3, name: "Borrow", link: "/borrow" },
-  { id: 4, name: "BorrowList", link: "/borrowList" },
+  { id: 1, name: "HOME", link: "/home" },
+  { id: 2, name: "CATALOG", link: "/catalog" },
+  { id: 3, name: "BORROWED ITEMS", link: "/borrow" },
+  { id: 4, name: "LIST", link: "/borrowList" },
 ];
 
 const Navbar = () => {
@@ -17,23 +19,26 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [user, setUser] = useState(null);
-  
+
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
-  const [newPassword, setNewPassword] = useState('');
-  const [verifyPassword, setVerifyPassword] = useState('');
+  const [newPassword, setNewPassword] = useState("");
+  const [verifyPassword, setVerifyPassword] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSuccessChangePassOpen, setIsSuccessChangePassOpen] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/auth/status', { withCredentials: true });
+        const response = await axios.get(
+          "http://localhost:8000/api/auth/status",
+          { withCredentials: true }
+        );
         if (response.data.user) {
           setUser(response.data.user);
         }
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error("Error fetching user data:", error);
       }
     };
     fetchUser();
@@ -45,12 +50,14 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.get('http://localhost:8000/api/auth/logout', { withCredentials: true });
+      await axios.get("http://localhost:8000/api/auth/logout", {
+        withCredentials: true,
+      });
       setUser(null);
-      navigate('/');
+      navigate("/");
     } catch (error) {
-      console.error('Error during logout:', error);
-      alert('Failed to log out. Please try again.');
+      console.error("Error during logout:", error);
+      alert("Failed to log out. Please try again.");
     }
   };
 
@@ -65,23 +72,23 @@ const Navbar = () => {
   const handleChangePassword = async (e) => {
     e.preventDefault();
     if (newPassword !== verifyPassword) {
-      alert('Passwords do not match');
+      alert("Passwords do not match");
       return;
     }
     try {
       await axios.post(
-        'http://localhost:8000/api/auth/change-password',
+        "http://localhost:8000/api/auth/change-password",
         { newPassword },
         { withCredentials: true }
       );
-      setSuccessMessage('Password changed successfully');
+      setSuccessMessage("Password changed successfully");
       setIsSuccessChangePassOpen(true);
-      setNewPassword('');
-      setVerifyPassword('');
+      setNewPassword("");
+      setVerifyPassword("");
       setIsChangePasswordOpen(false);
     } catch (error) {
-      console.error('Error changing password:', error);
-      alert('Error changing password. Please try again later.');
+      console.error("Error changing password:", error);
+      alert("Error changing password. Please try again later.");
     }
   };
 
@@ -98,7 +105,6 @@ const Navbar = () => {
       {/* upper Navbar */}
       <div className="bg-primary py-2 w-full">
         <div className="flex justify-between items-center w-full px-4">
-          
           {/* mobile menu toggle */}
           <button
             className="sm:hidden block text-white"
@@ -109,11 +115,14 @@ const Navbar = () => {
           </button>
 
           <div className="flex-1 flex justify-start ml-3">
-        <Link to="/home" className="font-bold text-xl items-center flex gap-1">
-          <CgGym size="50" />
-          GEMS
-        </Link>
-      </div>
+            <Link
+              to="/home"
+              className="font-bold text-xl items-center flex gap-1"
+            >
+              <img src={buksuLogoW} alt="BUKSU Logo" className="w-30 h-20" />
+              GEMBS
+            </Link>
+          </div>
 
           {/* menu items for larger screens */}
           <ul className="hidden sm:flex items-center gap-4 ml-auto">

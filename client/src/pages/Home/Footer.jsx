@@ -1,16 +1,11 @@
 import React from "react";
-// import footerLogo from "../../assets/logo.png";
-// import Banner from "../../assets/website/footer-pattern.jpg";
+
 import { FiShoppingBag } from "react-icons/fi";
 import { FaMapLocationDot } from "react-icons/fa6";
-import {
-  FaFacebook,
-  FaInstagram,
-  FaLinkedin,
-  FaLocationArrow,
-  FaMobileAlt,
-} from "react-icons/fa";
+import { FaFacebook, FaInstagram, FaLinkedin } from "react-icons/fa";
 import { IoCall } from "react-icons/io5";
+
+import buksuLogoW from "../../assets/buksuLogoW.png"; //logo
 
 // const BannerImg = {
 //   backgroundImage: `url(${Banner})`,
@@ -42,19 +37,19 @@ const FooterLinks = [
 
 const Footer = () => {
   return (
-    <div className="text-white bg-[#212529]">
+    <div className="text-white bg-[#12203A]">
       <div className="container">
         <div data-aos="zoom-in" className="grid md:grid-cols-3 pb-44 pt-5">
           {/* company details */}
           <div className="py-8 px-4">
             <h1 className="sm:text-3xl text-xl font-bold sm:text-left text-justify mb-3 flex items-center gap-1">
-              <FiShoppingBag size="30" />
-              {/* <img src={footerLogo} alt="" className="max-w-[50px]" /> */}
-              ShopMe
+              <img src={buksuLogoW} alt="BUKSU Logo" className="w-30 h-20" />
+              GEMBS
             </h1>
             <p>
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Cum in
-              beatae ea recusandae blanditiis veritatis.
+              Gym Equipment Borrowing and Management System shall facilitate
+              students, faculty, and personnels with an effective gym equipment
+              borrowing and return process.
             </p>
           </div>
 
@@ -105,18 +100,11 @@ const Footer = () => {
                 <a href="#">
                   <FaFacebook className="text-3xl" />
                 </a>
-                <a href="#">
-                  <FaLinkedin className="text-3xl" />
-                </a>
               </div>
               <div className="mt-6">
                 <div className="flex items-center gap-3">
                   <FaMapLocationDot />
-                  <p>Indore, Madhya Pradesh</p>
-                </div>
-                <div className="flex items-center gap-3 mt-3">
-                  <IoCall />
-                  <p>+91 123456789</p>
+                  <p>Bukidnon State University</p>
                 </div>
               </div>
             </div>

@@ -5,8 +5,11 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: "#000058",
-        secondary: "#3b82f6",
+        primary: "#12203A",
+        secondary: "#96ABD8",
+      },
+      fontFamily: {
+        sans: ["Poppins", "sans-serif"],
       },
       container: {
         center: true,

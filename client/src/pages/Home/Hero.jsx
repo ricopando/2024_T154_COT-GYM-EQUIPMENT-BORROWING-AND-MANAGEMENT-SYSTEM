@@ -3,6 +3,8 @@ import Image1 from "../../assets/hero/sport.png";
 import Image2 from "../../assets/hero/furniture.png";
 import Image3 from "../../assets/hero/electronic.png";
 import Slider from "react-slick";
+import { Link } from "react-router-dom";
+import BackgroundPattern from "../../assets/bgpattern.jpg";
 
 const ImageList = [
   {
@@ -43,12 +45,17 @@ const Hero = ({ handleOrderPopup }) => {
   };
 
   return (
-    <div className="relative overflow-hidden min-h-[550px] sm:min-h-[800px] bg-gray-100 flex justify-center items-center dark:bg-slate-950 dark:text-white duration-200 ">
-      {/* background pattern */}
-      <div className="h-[650px] w-[700px] bg-primary absolute -top-1/2 right-0 rounded-3xl rotate-45 -z[8]"></div>
+    <div className="relative overflow-hidden min-h-[550px] sm:min-h-[800px] flex justify-center items-center dark:bg-slate-950 dark:text-white duration-200">
       {/* hero section */}
       <div className="container pb-8 sm:pb-0">
-        <Slider {...settings}>
+        <Slider
+          {...settings}
+          style={{
+            backgroundColor: "#12203A",
+            color: "white",
+            paddingLeft: "3rem",
+          }}
+        >
           {ImageList.map((data) => (
             <div key={data.id}>
               <div className="grid grid-cols-1 sm:grid-cols-2">
@@ -75,12 +82,16 @@ const Hero = ({ handleOrderPopup }) => {
                     data-aos-duration="500"
                     data-aos-delay="300"
                   >
-                    <button
-                      onClick={handleOrderPopup}
-                      className="bg-gradient-to-r from-primary to-secondary hover:scale-105 duration-200 text-white py-2 px-4 rounded-full"
+                    <Link
+                      to="/catalog"
+                      className="hover:scale-105 duration-200 text-white py-2 px-4 rounded"
+                      style={{
+                        backgroundColor: "#96ABD8",
+                        fontWeight: "normal",
+                      }}
                     >
-                      Borrow Now
-                    </button>
+                      BORROW NOW!
+                    </Link>
                   </div>
                 </div>
                 {/* image section */}

@@ -13,8 +13,8 @@ axios.defaults.withCredentials = true;
 const Catalog = () => {
   const [equipmentItems, setEquipmentItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [startDate, setStartDate] = useState(null);
@@ -29,10 +29,10 @@ const Catalog = () => {
 
   const checkAuth = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/auth/check');
+      const response = await axios.get("http://localhost:8000/api/auth/check");
       return response.data.isAuthenticated;
     } catch (error) {
-      console.error('Auth check failed:', error);
+      console.error("Auth check failed:", error);
       return false;
     }
   };
@@ -40,12 +40,12 @@ const Catalog = () => {
   useEffect(() => {
     const fetchEquipment = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/equipment');
+        const response = await axios.get("http://localhost:8000/api/equipment");
         setEquipmentItems(response.data);
         setFilteredItems(response.data);
       } catch (error) {
-        console.error('Failed to fetch equipment data:', error);
-        alert('Failed to fetch equipment data.');
+        console.error("Failed to fetch equipment data:", error);
+        alert("Failed to fetch equipment data.");
       }
     };
     fetchEquipment();
@@ -54,11 +54,13 @@ const Catalog = () => {
   useEffect(() => {
     const fetchBorrowedItems = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/borrow-items');
-        console.log('Fetched borrowed items:', response.data);
+        const response = await axios.get(
+          "http://localhost:8000/api/borrow-items"
+        );
+        console.log("Fetched borrowed items:", response.data);
         setBorrowedItems(response.data);
       } catch (error) {
-        console.error('Failed to fetch borrowed items:', error);
+        console.error("Failed to fetch borrowed items:", error);
       }
     };
     fetchBorrowedItems();
@@ -69,19 +71,25 @@ const Catalog = () => {
     console.log(`Checking date: ${currentDate} for itemId: ${itemId}`);
 
     return borrowedItems.some((borrowedItem) => {
-      console.log('Borrowed Item:', borrowedItem);
+      console.log("Borrowed Item:", borrowedItem);
 
       // Check if borrowedItem has an equipment array
       if (Array.isArray(borrowedItem.equipment)) {
         return borrowedItem.equipment.some((equipmentItem) => {
-          console.log('Equipment Item:', equipmentItem);
+          console.log("Equipment Item:", equipmentItem);
 
           // Ensure the equipmentItem has an equipment object and check the ID
-          if (equipmentItem.equipment?._id === itemId && (equipmentItem.status === "Pending" || equipmentItem.status === "Approved")) {
+          if (
+            equipmentItem.equipment?._id === itemId &&
+            (equipmentItem.status === "Pending" ||
+              equipmentItem.status === "Approved")
+          ) {
             const borrowDate = new Date(equipmentItem.borrowDate).getTime();
             const returnDate = new Date(equipmentItem.returnDate).getTime();
-            console.log(`Item: ${equipmentItem.equipment._id}, Borrow Date: ${borrowDate}, Return Date: ${returnDate}`);
-            
+            console.log(
+              `Item: ${equipmentItem.equipment._id}, Borrow Date: ${borrowDate}, Return Date: ${returnDate}`
+            );
+
             // Check if the current date is within the borrow and return date range
             return currentDate >= borrowDate && currentDate <= returnDate;
           }
@@ -97,7 +105,11 @@ const Catalog = () => {
     const isHighlighted = borrowedItems.some((borrowedItem) => {
       if (Array.isArray(borrowedItem.equipment)) {
         return borrowedItem.equipment.some((equipmentItem) => {
-          if (equipmentItem.equipment?._id === selectedItem._id && (equipmentItem.status === "Pending" || equipmentItem.status === "Approved")) {
+          if (
+            equipmentItem.equipment?._id === selectedItem._id &&
+            (equipmentItem.status === "Pending" ||
+              equipmentItem.status === "Approved")
+          ) {
             const borrowDate = new Date(equipmentItem.borrowDate);
             const returnDate = new Date(equipmentItem.returnDate);
             return date >= borrowDate && date <= returnDate;
@@ -113,9 +125,10 @@ const Catalog = () => {
   const handleFilter = () => {
     let filtered = equipmentItems;
     if (searchQuery) {
-      filtered = filtered.filter((item) =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(
+        (item) =>
+          item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.description.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
     if (selectedCategory) {
@@ -129,7 +142,7 @@ const Catalog = () => {
   }, [searchQuery, selectedCategory, equipmentItems]);
 
   const handleImageClick = (item) => {
-    if (item.availabilityStatus === 'Maintenance' || item.isDisabled) {
+    if (item.availabilityStatus === "Maintenance" || item.isDisabled) {
       setIsDisabledDialogOpen(true);
       return;
     }
@@ -148,19 +161,26 @@ const Catalog = () => {
     try {
       const isAuthenticated = await checkAuth();
       if (!isAuthenticated) {
-        throw new Error('User not authenticated');
+        throw new Error("User not authenticated");
       }
-      const response = await axios.get('http://localhost:8000/api/borrow-lists');
-      const activeLists = response.data.filter(list => list.status === 'Draft');
+      const response = await axios.get(
+        "http://localhost:8000/api/borrow-lists"
+      );
+      const activeLists = response.data.filter(
+        (list) => list.status === "Draft"
+      );
       if (activeLists.length > 0) {
         return activeLists[0]._id;
       }
-      const newListResponse = await axios.post('http://localhost:8000/api/borrow-lists', { items: [] });
+      const newListResponse = await axios.post(
+        "http://localhost:8000/api/borrow-lists",
+        { items: [] }
+      );
       return newListResponse.data._id;
     } catch (error) {
-      console.error('Error in getOrCreateBorrowList:', error);
+      console.error("Error in getOrCreateBorrowList:", error);
       if (error.response?.status === 401) {
-        alert('Please log in to create a borrow list');
+        alert("Please log in to create a borrow list");
       }
       throw error;
     }
@@ -173,36 +193,40 @@ const Catalog = () => {
         return;
       }
       if (startDate > endDate) {
-        alert('End date must be after start date');
+        alert("End date must be after start date");
         return;
       }
-      
+
       // Close the modal before starting the loading process
       handleCloseModal();
       setIsLoading(true);
 
       const isAuthenticated = await checkAuth();
       if (!isAuthenticated) {
-        alert('Please log in to add items to your borrow list');
+        alert("Please log in to add items to your borrow list");
         setIsLoading(false);
         return;
       }
 
-      const listId = borrowListId || await getOrCreateBorrowList();
+      const listId = borrowListId || (await getOrCreateBorrowList());
       setBorrowListId(listId);
-      const currentList = await axios.get(`http://localhost:8000/api/borrow-lists/${listId}`);
+      const currentList = await axios.get(
+        `http://localhost:8000/api/borrow-lists/${listId}`
+      );
       const currentItems = currentList.data.items || [];
       const newItem = {
         equipment: selectedItem._id,
         borrowDate: startDate.toISOString(),
-        returnDate: endDate.toISOString()
+        returnDate: endDate.toISOString(),
       };
       const updatedItems = [...currentItems, newItem];
-      await axios.put(`http://localhost:8000/api/borrow-lists/${listId}`, { items: updatedItems });
+      await axios.put(`http://localhost:8000/api/borrow-lists/${listId}`, {
+        items: updatedItems,
+      });
       setIsSuccessDialogOpen(true);
     } catch (error) {
-      console.error('Error in handleAddToList:', error);
-      alert('Failed to add item to borrow list. Please try again.');
+      console.error("Error in handleAddToList:", error);
+      alert("Failed to add item to borrow list. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -221,11 +245,28 @@ const Catalog = () => {
   return (
     <div className="bg-white dark:bg-gray-900 dark:text-white duration-500 ease-in-out min-h-screen">
       <Navbar />
-      <div className="container mx-auto px-4">
-        <div className="text-left mt-5 mb-12">
-          <h1 data-aos="fade-up" className="text-5xl font-extrabold tracking-tight">Equipment</h1>
+      <div className="container mx-auto px-4 pt-8">
+        <div className="text-left mt-8 mb-10">
+          <h1
+            data-aos="fade-up"
+            className="text-5xl font-bold text-gray-800 dark:text-white relative inline-block
+            after:content-[''] after:block after:w-1/2 after:h-1 after:bg-primary
+            after:mt-2 after:rounded-full"
+          >
+            CATALOG
+          </h1>
+          <p
+            data-aos="fade-up"
+            data-aos-delay="100"
+            className="text-gray-600 dark:text-gray-400 mt-4 text-lg"
+          >
+            Browse and borrow available equipment
+          </p>
         </div>
-        <div data-aos="fade-up" className="flex justify-between items-center mt-5 mb-12">
+        <div
+          data-aos="fade-up"
+          className="flex justify-between items-center mt-5 mb-12"
+        >
           <input
             type="text"
             value={searchQuery}
@@ -242,20 +283,24 @@ const Catalog = () => {
           >
             <option value="">All Categories</option>
             <option value="furnitures">Furnitures</option>
-            {Array.from(new Set(equipmentItems.map(e => e.category))).map(category => (
-              <option key={category} value={category}>{category}</option>
-            ))}
+            {Array.from(new Set(equipmentItems.map((e) => e.category))).map(
+              (category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              )
+            )}
           </select>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 place-items-center mt-5">
           {filteredItems.map((item) => (
             <div
               key={item._id}
-              className="w-full max-w-xs h-[350px] rounded-2xl bg-white dark:bg-gray-800 hover:bg-black/80 dark:hover:bg-primary hover:text-white relative shadow-xl transition duration-500 ease-in-out group mt-5 flex flex-col justify-between"
+              className="w-full max-w-xs h-[350px] rounded-2xl bg-white dark:bg-gray-800 hover:bg-primary dark:hover:bg-primary hover:text-white relative shadow-xl transition duration-500 ease-in-out group mt-5 flex flex-col justify-between"
               tabIndex="0"
               aria-label={`Equipment card for ${item.name}`}
               onClick={() => handleImageClick(item)}
-              onKeyDown={(e) => e.key === 'Enter' && handleImageClick(item)}
+              onKeyDown={(e) => e.key === "Enter" && handleImageClick(item)}
               data-aos="fade-up"
             >
               <div className="h-[150px] flex justify-center items-center">
@@ -277,10 +322,10 @@ const Catalog = () => {
               </div>
               <div className="p-4 flex justify-center">
                 <button
-                  className="bg-primary hover:scale-105 transition duration-500 ease-in-out text-white py-1 px-4 rounded-full group-hover:bg-white group-hover:text-primary"
+                  className="bg-primary hover:scale-105 transition duration-500 ease-in-out text-white py-2 px-6 w-32 h-10 group-hover:bg-white group-hover:text-primary rounded-md"
                   aria-label={`Order ${item.name}`}
                 >
-                  Borrow Now
+                  BORROW
                 </button>
               </div>
             </div>
@@ -291,20 +336,31 @@ const Catalog = () => {
         <CatalogModal onClose={handleCloseModal} className="z-40">
           <div className="flex justify-between items-center pb-4 border-b border-gray-200">
             <h2 className="text-2xl font-bold">{selectedItem.name}</h2>
-            <button onClick={handleCloseModal} className="text-gray-500 hover:text-gray-700">
+            <button
+              onClick={handleCloseModal}
+              className="text-gray-500 hover:text-gray-700"
+            >
               <span className="sr-only">Close</span>
               &times;
             </button>
           </div>
           <div className="flex justify-center mt-4">
             <button
-              className={`px-4 py-2 ${activeTab === 0 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'} rounded-l`}
+              className={`px-4 py-2 ${
+                activeTab === 0
+                  ? "bg-primary text-white"
+                  : "bg-gray-200 text-gray-700"
+              } rounded-l`}
               onClick={() => setActiveTab(0)}
             >
-              Book Item
+              Item
             </button>
             <button
-              className={`px-4 py-2 ${activeTab === 1 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'} rounded-r`}
+              className={`px-4 py-2 ${
+                activeTab === 1
+                  ? "bg-primary text-white"
+                  : "bg-gray-200 text-gray-700"
+              } rounded-r`}
               onClick={() => setActiveTab(1)}
             >
               Details
@@ -314,31 +370,41 @@ const Catalog = () => {
             {activeTab === 0 && (
               <div>
                 <img
-                  src={selectedItem.image || '/images/placeholder.jpg'}
+                  src={selectedItem.image || "/images/placeholder.jpg"}
                   alt={selectedItem.name}
                   className="w-full h-64 object-contain rounded mb-4"
                 />
-                <h3 className="text-lg font-semibold mb-2">Select Borrow Period</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  Select Borrow Period
+                </h3>
                 <div className="flex flex-col space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Start Date</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Start Date
+                    </label>
                     <DatePicker
                       selected={startDate}
                       onChange={(date) => setStartDate(date)}
                       className="w-full p-2 border rounded"
                       minDate={new Date()}
-                      filterDate={(date) => !isDateDisabled(date, selectedItem._id)}
+                      filterDate={(date) =>
+                        !isDateDisabled(date, selectedItem._id)
+                      }
                       dayClassName={(date) => highlightWithRanges(date)}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">End Date</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      End Date
+                    </label>
                     <DatePicker
                       selected={endDate}
                       onChange={(date) => setEndDate(date)}
                       className="w-full p-2 border rounded"
                       minDate={startDate || new Date()}
-                      filterDate={(date) => !isDateDisabled(date, selectedItem._id)}
+                      filterDate={(date) =>
+                        !isDateDisabled(date, selectedItem._id)
+                      }
                       dayClassName={(date) => highlightWithRanges(date)}
                     />
                   </div>
@@ -348,11 +414,22 @@ const Catalog = () => {
             {activeTab === 1 && (
               <div>
                 <h3 className="text-lg font-semibold mb-2">Details</h3>
-                <p className="text-gray-700"><strong>Name:</strong> {selectedItem.name}</p>
-                <p className="text-gray-700"><strong>Serial Number:</strong> {selectedItem.serialNumber}</p>
-                <p className="text-gray-700"><strong>Model:</strong> {selectedItem.model || 'N/A'}</p>
-                <p className="text-gray-700"><strong>Category:</strong> {selectedItem.category || 'N/A'}</p>
-                <p className="text-gray-700"><strong>Description:</strong> {selectedItem.description || 'No description available.'}</p>
+                <p className="text-gray-700">
+                  <strong>Name:</strong> {selectedItem.name}
+                </p>
+                <p className="text-gray-700">
+                  <strong>Serial Number:</strong> {selectedItem.serialNumber}
+                </p>
+                <p className="text-gray-700">
+                  <strong>Model:</strong> {selectedItem.model || "N/A"}
+                </p>
+                <p className="text-gray-700">
+                  <strong>Category:</strong> {selectedItem.category || "N/A"}
+                </p>
+                <p className="text-gray-700">
+                  <strong>Description:</strong>{" "}
+                  {selectedItem.description || "No description available."}
+                </p>
               </div>
             )}
           </div>
@@ -366,7 +443,7 @@ const Catalog = () => {
             </button>
             <button
               onClick={handleAddToList}
-              className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+              className="bg-secondary text-white py-2 px-4 rounded hover:bg-primary"
               disabled={isLoading}
             >
               Add to List
