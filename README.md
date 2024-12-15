@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> master
 # 2024_T154_COT-GYM-EQUIPMENT-BORROWING-AND-MANAGEMENT-SYSTEM
 
 T154 - INTEGRATIVE PROGRAMMING AND TECHNOLOGIES 2
@@ -15,3 +19,9 @@ Degenion, Johan Jay E.
 Pando, Rico T.
 
 Padilla, Nikko B.
+<<<<<<< HEAD
+=======
+=======
+# 2024_T154_COT-GYM-EQUIPMENT-BORROWING-AND-MANAGEMENT-SYSTEM
+>>>>>>> 7d98d18 (Initial commit)
+>>>>>>> master
