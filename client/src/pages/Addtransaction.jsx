@@ -147,58 +147,65 @@ const Addtransaction = () => {
   });
 
   const isDateDisabled = (date, itemId) => {
-    const currentDate = date.getTime();
-    console.log(`Checking date: ${currentDate} for itemId: ${itemId}`);
+    const currentDate = new Date(date).setHours(0, 0, 0, 0);
 
     return borrowedItems.some((borrowedItem) => {
-      console.log("Borrowed Item:", borrowedItem);
+      // Check each equipment item in the borrowedItem
+      return borrowedItem.equipment.some((equipmentItem) => {
+        if (
+          equipmentItem.equipment._id === itemId &&
+          (equipmentItem.status === "Pending" ||
+            equipmentItem.status === "Approved")
+        ) {
+          const borrowDate = new Date(equipmentItem.borrowDate).setHours(
+            0,
+            0,
+            0,
+            0
+          );
+          const returnDate = new Date(equipmentItem.returnDate).setHours(
+            0,
+            0,
+            0,
+            0
+          );
 
-      // Check if borrowedItem has an equipment array
-      if (Array.isArray(borrowedItem.equipment)) {
-        return borrowedItem.equipment.some((equipmentItem) => {
-          console.log("Equipment Item:", equipmentItem);
-
-          // Ensure the equipmentItem has an equipment object and check the ID
-          if (
-            equipmentItem.equipment?._id === itemId &&
-            (equipmentItem.status === "Pending" ||
-              equipmentItem.status === "Approved")
-          ) {
-            const borrowDate = new Date(equipmentItem.borrowDate).getTime();
-            const returnDate = new Date(equipmentItem.returnDate).getTime();
-            console.log(
-              `Item: ${equipmentItem.equipment._id}, Borrow Date: ${borrowDate}, Return Date: ${returnDate}`
-            );
-
-            // Check if the current date is within the borrow and return date range
-            return currentDate >= borrowDate && currentDate <= returnDate;
-          }
-          return false;
-        });
-      }
-      return false;
+          return currentDate >= borrowDate && currentDate <= returnDate;
+        }
+        return false;
+      });
     });
   };
 
-  // Custom styling for the date picker to show a red line for disabled dates
-  const highlightWithRanges = (date) => {
+  const highlightWithRanges = (date, itemId) => {
+    const currentDate = new Date(date).setHours(0, 0, 0, 0);
+
     const isHighlighted = borrowedItems.some((borrowedItem) => {
-      if (Array.isArray(borrowedItem.equipment)) {
-        return borrowedItem.equipment.some((equipmentItem) => {
-          if (
-            equipmentItem.equipment?._id &&
-            (equipmentItem.status === "Pending" ||
-              equipmentItem.status === "Approved")
-          ) {
-            const borrowDate = new Date(equipmentItem.borrowDate);
-            const returnDate = new Date(equipmentItem.returnDate);
-            return date >= borrowDate && date <= returnDate;
-          }
-          return false;
-        });
-      }
-      return false;
+      return borrowedItem.equipment.some((equipmentItem) => {
+        if (
+          equipmentItem.equipment._id === itemId &&
+          (equipmentItem.status === "Pending" ||
+            equipmentItem.status === "Approved")
+        ) {
+          const borrowDate = new Date(equipmentItem.borrowDate).setHours(
+            0,
+            0,
+            0,
+            0
+          );
+          const returnDate = new Date(equipmentItem.returnDate).setHours(
+            0,
+            0,
+            0,
+            0
+          );
+
+          return currentDate >= borrowDate && currentDate <= returnDate;
+        }
+        return false;
+      });
     });
+
     return isHighlighted ? "highlight-red" : "";
   };
 
