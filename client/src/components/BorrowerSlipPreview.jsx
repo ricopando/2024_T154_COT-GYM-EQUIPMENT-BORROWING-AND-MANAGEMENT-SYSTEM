@@ -549,7 +549,7 @@ const StudentBorrowerSlipPreview = ({
           </button>
           <button
             onClick={() => generatePDF(false)}
-            className="px-4 py-2 bg-secondary text-white rounded hover:bg-primary focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors flex items-center"
+            className="px-4 py-2 bg-secondary text-white rounded focus:outline-none flex items-center"
             aria-label="Download PDF"
           >
             <svg

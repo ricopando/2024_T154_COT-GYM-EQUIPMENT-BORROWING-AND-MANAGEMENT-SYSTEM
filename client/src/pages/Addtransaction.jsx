@@ -214,7 +214,7 @@ const Addtransaction = () => {
                             after:content-[''] after:block after:w-1/2 after:h-1 after:bg-primary
                             after:mt-2 after:rounded-full"
             >
-              CREATE TRANSACTION
+              ADD TRANSACTION
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-4 text-lg">
               Create and manage equipment borrowing transactions

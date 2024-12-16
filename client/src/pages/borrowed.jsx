@@ -265,7 +265,7 @@ const Borrowed = () => {
         <div className="flex space-x-2">
           <button
             onClick={() => handleReturnTransaction(row.item)}
-            className="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-3 py-1 bg-primary text-white text-sm rounded-lg"
           >
             Return
           </button>

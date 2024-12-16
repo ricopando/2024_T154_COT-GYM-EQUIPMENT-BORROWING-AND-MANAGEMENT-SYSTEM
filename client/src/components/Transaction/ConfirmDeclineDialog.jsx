@@ -1,5 +1,5 @@
 // components/modal/ConfirmDeclineDialog.jsx
-import React from 'react';
+import React from "react";
 
 const ConfirmDeclineDialog = ({ isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;

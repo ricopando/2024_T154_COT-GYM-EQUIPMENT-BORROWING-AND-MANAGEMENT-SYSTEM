@@ -1,13 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import DataTable from 'react-data-table-component';
-import { FaEye } from 'react-icons/fa';
-import ImageModal from './ImageModal';
-import axios from 'axios';
-import ApprovedModal from '../modal/approvedModal';
-import ConfirmReturn from './ConfirmReturn';
-const EquipmentDetails = ({ isOpen, onClose, equipmentDetails, setEquipmentDetails,  toast, fetchAllBorrowedItems }) => {
+import React, { useState, useEffect } from "react";
+import DataTable from "react-data-table-component";
+import { FaEye } from "react-icons/fa";
+import ImageModal from "./ImageModal";
+import axios from "axios";
+import ApprovedModal from "../modal/approvedModal";
+import ConfirmReturn from "./ConfirmReturn";
+const EquipmentDetails = ({
+  isOpen,
+  onClose,
+  equipmentDetails,
+  setEquipmentDetails,
+  toast,
+  fetchAllBorrowedItems,
+}) => {
   if (!isOpen) return null;
-  
+
   // Define the state for image modal open
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [currentImageUrl, setCurrentImageUrl] = useState("");
@@ -15,7 +22,6 @@ const EquipmentDetails = ({ isOpen, onClose, equipmentDetails, setEquipmentDetai
   const [showApprovedModal, setShowApprovedModal] = useState(false);
   const [confirmReturnDialogOpen, setConfirmReturnDialogOpen] = useState(false);
   const [approveLoading, setApproveLoading] = useState(false);
-  
 
   const openImageModal = (imageUrl) => {
     setCurrentImageUrl(imageUrl);
@@ -35,13 +41,13 @@ const EquipmentDetails = ({ isOpen, onClose, equipmentDetails, setEquipmentDetai
 
   const confirmReturnItem = async () => {
     if (!localEquipmentToDecline) {
-      console.error('No equipment selected for return.');
+      console.error("No equipment selected for return.");
       return;
     }
 
     const { borrowedItemId, itemId } = localEquipmentToDecline;
 
-    console.log('Returning item, setting loading to true');
+    console.log("Returning item, setting loading to true");
     setConfirmReturnDialogOpen(false);
     setApproveLoading(true);
     setShowApprovedModal(true);
@@ -49,29 +55,29 @@ const EquipmentDetails = ({ isOpen, onClose, equipmentDetails, setEquipmentDetai
     try {
       const response = await axios.patch(
         `http://localhost:8000/api/borrow-items/${borrowedItemId}/item/${itemId}/return`,
-        { status: 'Returned' },
+        { status: "Returned" },
         { withCredentials: true }
       );
 
       if (response.status === 200) {
-        setEquipmentDetails(prevDetails =>
-          prevDetails.map(item =>
-            item.id === itemId ? { ...item, status: 'Returned' } : item
+        setEquipmentDetails((prevDetails) =>
+          prevDetails.map((item) =>
+            item.id === itemId ? { ...item, status: "Returned" } : item
           )
         );
         toast.success("Item successfully returned.");
         setShowApprovedModal(false);
 
         await fetchAllBorrowedItems();
-        console.log('Fetched all borrowed items after return');
+        console.log("Fetched all borrowed items after return");
       } else {
         toast.error("Failed to return item.");
       }
     } catch (error) {
-      console.error('Error returning item:', error);
+      console.error("Error returning item:", error);
       toast.error("Failed to return item.");
     } finally {
-      console.log('Finished returning item, setting loading to false');
+      console.log("Finished returning item, setting loading to false");
       setApproveLoading(false);
       setConfirmReturnDialogOpen(false);
     }
@@ -86,32 +92,30 @@ const EquipmentDetails = ({ isOpen, onClose, equipmentDetails, setEquipmentDetai
   const equipmentColumns = [
     {
       name: "Name",
-      selector: row => row.equipment.name,
+      selector: (row) => row.equipment.name,
       sortable: true,
-      cell: row => (
-        <span className="font-medium text-gray-900">
-          {row.equipment.name}
-        </span>
+      cell: (row) => (
+        <span className="font-medium text-gray-900">{row.equipment.name}</span>
       ),
     },
     {
       name: "Serial No",
-      selector: row => row.equipment.serialNumber,
+      selector: (row) => row.equipment.serialNumber,
       sortable: true,
     },
     {
       name: "Model",
-      selector: row => row.equipment.model,
+      selector: (row) => row.equipment.model,
       sortable: true,
     },
     {
       name: "Category",
-      selector: row => row.equipment.category,
+      selector: (row) => row.equipment.category,
       sortable: true,
     },
     {
       name: "Image",
-      selector: row => (
+      selector: (row) => (
         <button
           onClick={() => openImageModal(row.equipment.image)}
           className="text-blue-600 hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-300"
@@ -123,41 +127,41 @@ const EquipmentDetails = ({ isOpen, onClose, equipmentDetails, setEquipmentDetai
       ),
       sortable: false,
     },
-      {
-        name: "Borrowed Date",
-        selector: row => new Date(row.borrowDate).toLocaleDateString(),
-        sortable: true,
-      },
-      {
-        name: "Return Date",
-        selector: row => new Date(row.returnDate).toLocaleDateString(),
-        sortable: true,
-      },
     {
-      name: "Status",
-      selector: row => row.status,
+      name: "Borrowed Date",
+      selector: (row) => new Date(row.borrowDate).toLocaleDateString(),
       sortable: true,
     },
     {
-        name: "Action",
-        selector: row => (
-          <div className="flex gap-2">
-            <button
-              className="px-3 py-1 text-sm font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              onClick={() => handleReturnItem(row.transactionId, row.id)}
-              aria-label={`Return action for ${row.equipment._id}`}
-            >
-              Return
-            </button>
-          </div>
-        ),
-        sortable: false,
-        width: '220px',
-      },
-    ];
+      name: "Return Date",
+      selector: (row) => new Date(row.returnDate).toLocaleDateString(),
+      sortable: true,
+    },
+    {
+      name: "Status",
+      selector: (row) => row.status,
+      sortable: true,
+    },
+    {
+      name: "Action",
+      selector: (row) => (
+        <div className="flex gap-2">
+          <button
+            className="px-3 py-1 text-sm font-semibold text-white bg-primary rounded-md"
+            onClick={() => handleReturnItem(row.transactionId, row.id)}
+            aria-label={`Return action for ${row.equipment._id}`}
+          >
+            Return
+          </button>
+        </div>
+      ),
+      sortable: false,
+      width: "220px",
+    },
+  ];
 
   // Define filteredItems if needed, otherwise use equipmentDetails directly
-  const filteredItems = equipmentDetails; 
+  const filteredItems = equipmentDetails;
   // Replace with actual filtering logic if needed
 
   return (
@@ -173,8 +177,18 @@ const EquipmentDetails = ({ isOpen, onClose, equipmentDetails, setEquipmentDetai
               className="text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               aria-label="Close Equipment Modal"
             >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -186,7 +200,7 @@ const EquipmentDetails = ({ isOpen, onClose, equipmentDetails, setEquipmentDetai
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
           )}
-          
+
           {equipmentDetails && equipmentDetails.length > 0 ? (
             <DataTable
               columns={equipmentColumns}
@@ -198,37 +212,39 @@ const EquipmentDetails = ({ isOpen, onClose, equipmentDetails, setEquipmentDetai
               customStyles={{
                 headRow: {
                   style: {
-                    backgroundColor: '#F9FAFB',
-                    borderBottom: '1px solid #E5E7EB',
+                    backgroundColor: "#F9FAFB",
+                    borderBottom: "1px solid #E5E7EB",
                   },
                 },
                 headCells: {
                   style: {
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    color: '#374151',
-                    paddingTop: '1rem',
-                    paddingBottom: '1rem',
+                    fontSize: "0.875rem",
+                    fontWeight: "600",
+                    color: "#374151",
+                    paddingTop: "1rem",
+                    paddingBottom: "1rem",
                   },
                 },
                 rows: {
                   style: {
-                    '&:not(:last-of-type)': {
-                      borderBottom: '1px solid #E5E7EB',
+                    "&:not(:last-of-type)": {
+                      borderBottom: "1px solid #E5E7EB",
                     },
                   },
                 },
                 cells: {
                   style: {
-                    fontSize: '0.875rem',
-                    color: '#374151',
-                    padding: '1rem',
+                    fontSize: "0.875rem",
+                    color: "#374151",
+                    padding: "1rem",
                   },
                 },
               }}
             />
           ) : (
-            <p className="text-gray-500 text-center py-4">No details available.</p>
+            <p className="text-gray-500 text-center py-4">
+              No details available.
+            </p>
           )}
         </div>
 
@@ -250,5 +266,3 @@ const EquipmentDetails = ({ isOpen, onClose, equipmentDetails, setEquipmentDetai
 };
 
 export default EquipmentDetails;
-
-

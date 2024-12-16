@@ -1,10 +1,10 @@
-import React from 'react';
+import React from "react";
 
 const BorrowListLoading = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
     <div className="bg-white p-6 rounded shadow-lg flex items-center space-x-4">
       <svg
-        className="animate-spin h-5 w-5 text-green-500"
+        className="animate-spin h-5 w-5 text-primary"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"

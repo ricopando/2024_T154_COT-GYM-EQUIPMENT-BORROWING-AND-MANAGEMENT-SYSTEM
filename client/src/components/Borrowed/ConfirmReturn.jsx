@@ -1,6 +1,5 @@
 // components/modal/ConfirmDeclineDialog.jsx
-import React from 'react';
-
+import React from "react";
 
 const ConfirmReturn = ({ isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;
@@ -18,7 +17,7 @@ const ConfirmReturn = ({ isOpen, onClose, onConfirm }) => {
             Cancel
           </button>
           <button
-            className="bg-red-500 text-white py-1 px-4 rounded"
+            className="bg-primary text-white py-1 px-4 rounded"
             onClick={onConfirm}
           >
             Confirm

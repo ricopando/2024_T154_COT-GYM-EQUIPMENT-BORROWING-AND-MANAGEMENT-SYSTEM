@@ -1,8 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-const EditDatesModal = ({ isOpen, onClose, onConfirm, initialBorrowDate, initialReturnDate, borrowedDates, itemId }) => {
+const EditDatesModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  initialBorrowDate,
+  initialReturnDate,
+  borrowedDates,
+  itemId,
+}) => {
   if (!isOpen) return null;
 
   const [borrowDate, setBorrowDate] = useState(null);
@@ -20,30 +28,35 @@ const EditDatesModal = ({ isOpen, onClose, onConfirm, initialBorrowDate, initial
   }, [initialBorrowDate, initialReturnDate]);
 
   useEffect(() => {
-    console.log('Borrowed Dates:', borrowedDates);
+    console.log("Borrowed Dates:", borrowedDates);
   }, [borrowedDates]);
 
   const isDateDisabled = (date) => {
     return borrowedDates.some((borrowedItem) => {
       if (!Array.isArray(borrowedItem.equipment)) return false;
-      
+
       return borrowedItem.equipment.some((equipmentItem) => {
         // Skip current booking
-        if (equipmentItem.borrowDate === initialBorrowDate && 
-            equipmentItem.returnDate === initialReturnDate) {
+        if (
+          equipmentItem.borrowDate === initialBorrowDate &&
+          equipmentItem.returnDate === initialReturnDate
+        ) {
           return false;
         }
 
-        if (equipmentItem.equipment?._id === itemId && 
-            (equipmentItem.status === "Pending" || equipmentItem.status === "Approved")) {
+        if (
+          equipmentItem.equipment?._id === itemId &&
+          (equipmentItem.status === "Pending" ||
+            equipmentItem.status === "Approved")
+        ) {
           const bookingStart = new Date(equipmentItem.borrowDate);
           const bookingEnd = new Date(equipmentItem.returnDate);
-          
+
           // Set time to start of day for comparison
           date.setHours(0, 0, 0, 0);
           bookingStart.setHours(0, 0, 0, 0);
           bookingEnd.setHours(0, 0, 0, 0);
-          
+
           return date >= bookingStart && date <= bookingEnd;
         }
         return false;
@@ -54,25 +67,30 @@ const EditDatesModal = ({ isOpen, onClose, onConfirm, initialBorrowDate, initial
   const highlightWithRanges = (date) => {
     const isHighlighted = borrowedDates.some((borrowedItem) => {
       if (!Array.isArray(borrowedItem.equipment)) return false;
-      
+
       return borrowedItem.equipment.some((equipmentItem) => {
         // Skip current booking
-        if (equipmentItem.borrowDate === initialBorrowDate && 
-            equipmentItem.returnDate === initialReturnDate) {
+        if (
+          equipmentItem.borrowDate === initialBorrowDate &&
+          equipmentItem.returnDate === initialReturnDate
+        ) {
           return false;
         }
 
-        if (equipmentItem.equipment?._id === itemId && 
-            (equipmentItem.status === "Pending" || equipmentItem.status === "Approved")) {
+        if (
+          equipmentItem.equipment?._id === itemId &&
+          (equipmentItem.status === "Pending" ||
+            equipmentItem.status === "Approved")
+        ) {
           const bookingStart = new Date(equipmentItem.borrowDate);
           const bookingEnd = new Date(equipmentItem.returnDate);
-          
+
           // Set time to start of day for comparison
           const compareDate = new Date(date);
           compareDate.setHours(0, 0, 0, 0);
           bookingStart.setHours(0, 0, 0, 0);
           bookingEnd.setHours(0, 0, 0, 0);
-          
+
           return compareDate >= bookingStart && compareDate <= bookingEnd;
         }
         return false;
@@ -95,7 +113,9 @@ const EditDatesModal = ({ isOpen, onClose, onConfirm, initialBorrowDate, initial
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Borrow Date</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Borrow Date
+              </label>
               <DatePicker
                 selected={borrowDate}
                 onChange={(date) => setBorrowDate(date)}
@@ -107,7 +127,9 @@ const EditDatesModal = ({ isOpen, onClose, onConfirm, initialBorrowDate, initial
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Return Date</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Return Date
+              </label>
               <DatePicker
                 selected={returnDate}
                 onChange={(date) => setReturnDate(date)}
@@ -129,7 +151,7 @@ const EditDatesModal = ({ isOpen, onClose, onConfirm, initialBorrowDate, initial
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="px-4 py-2 bg-primary text-white rounded-md"
             >
               Save Changes
             </button>
@@ -142,13 +164,13 @@ const EditDatesModal = ({ isOpen, onClose, onConfirm, initialBorrowDate, initial
           color: #666 !important;
           border-bottom: 2px solid red !important;
         }
-        
+
         .react-datepicker__day--disabled {
           color: #ccc !important;
           cursor: not-allowed !important;
           text-decoration: line-through !important;
         }
-        
+
         .react-datepicker__day:hover {
           background-color: #f0f0f0 !important;
         }
