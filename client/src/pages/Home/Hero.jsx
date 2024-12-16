@@ -47,11 +47,12 @@ const Hero = ({ handleOrderPopup }) => {
   return (
     <div className="relative overflow-hidden min-h-[550px] sm:min-h-[800px] flex justify-center items-center dark:bg-slate-950 dark:text-white duration-200">
       {/* hero section */}
-      <div className="container pb-8 sm:pb-0">
+      <div className="container pb-8 sm:pb-0 ">
         <Slider
           {...settings}
           style={{
             backgroundColor: "#12203A",
+            borderRadius: "1rem",
             color: "white",
             paddingLeft: "3rem",
           }}

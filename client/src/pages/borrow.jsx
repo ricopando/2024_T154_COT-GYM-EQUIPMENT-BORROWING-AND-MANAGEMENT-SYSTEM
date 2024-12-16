@@ -27,6 +27,8 @@ const Borrow = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [borrowerSlipModalOpen, setBorrowerSlipModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [setSuccessMessage] = useState("");
 
   useEffect(() => {
     AOS.init({
@@ -178,6 +180,8 @@ const Borrow = () => {
         );
         setItemToCancel(null);
         setConfirmCancelDialogOpen(false);
+        setSuccessMessage("Item successfully cancelled!");
+        setShowSuccessModal(true);
       } catch (error) {
         console.error("Error confirming cancellation:", error);
         toast.error("Failed to delete the item.");
@@ -201,6 +205,7 @@ const Borrow = () => {
         await handleDeleteTransaction(transactionToCancel);
         setTransactionToCancel(null);
         setConfirmTransactionCancelDialogOpen(false);
+        setShowSuccessModal(true);
       } catch (error) {
         console.error("Error confirming transaction cancellation:", error);
         toast.error("Failed to delete the transaction.");
@@ -532,7 +537,7 @@ const Borrow = () => {
                   No
                 </button>
                 <button
-                  className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+                  className="bg-primary text-white font-bold py-2 px-4 rounded"
                   onClick={confirmTransactionCancel}
                 >
                   Yes
@@ -548,6 +553,47 @@ const Borrow = () => {
             onClose={closeBorrowerSlipPreview}
             userDetails={selectedTransaction.user}
           />
+        )}
+
+        {showSuccessModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+            <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-2xl transform transition-all duration-300 ease-in-out max-w-md w-full mx-4">
+              <div className="flex flex-col items-center text-center">
+                {/* Success Icon */}
+                <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4">
+                  <svg
+                    className="w-8 h-8 text-green-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M5 13l4 4L19 7"
+                    ></path>
+                  </svg>
+                </div>
+
+                {/* Success Message */}
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
+                  Transaction Successfully Cancelled!
+                </h2>
+
+                {/* Button */}
+                <button
+                  className="bg-primary text-white font-semibold py-2 px-6 rounded-lg 
+                  transform transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 
+                  focus:ring-primary focus:ring-opacity-50"
+                  onClick={() => setShowSuccessModal(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

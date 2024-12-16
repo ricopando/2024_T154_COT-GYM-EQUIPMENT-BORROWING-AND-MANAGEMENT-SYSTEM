@@ -70,7 +70,7 @@ const ItemCard = ({ item, onOpenDeleteDialog }) => (
       <div className="flex justify-between items-start mb-2">
         <div>
           <h6 className="font-bold">{item.equipment?.name}</h6>
-          <span className="text-sm text-blue-500 border border-blue-500 rounded px-2">
+          <span className="text-sm text-balck border border-primary rounded px-2">
             {item.equipment?.category}
           </span>
         </div>
@@ -86,11 +86,11 @@ const ItemCard = ({ item, onOpenDeleteDialog }) => (
       </div>
       <div className="flex gap-2 items-center bg-gray-50 p-2 rounded">
         <svg
-          className="w-5 h-5 text-blue-500"
+          className="w-5 h-5 text-primary"
           fill="currentColor"
           viewBox="0 0 20 20"
         >
-          <path d="M6 2a1 1 0 00-1 1v1H3a1 1 0 000 2h1v9a2 2 0 002 2h8a2 2 0 002-2V6h1a1 1 0 100-2h-2V3a1 1 0 00-1-1H6zm3 3h2v9H9V5z" />
+          <path d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm0 2h8v2H6V4zm0 4h8v8H6V8z" />
         </svg>
         <div>
           <p className="text-sm font-medium">
@@ -105,6 +105,95 @@ const ItemCard = ({ item, onOpenDeleteDialog }) => (
   </div>
 );
 
+// Add this component near your other component definitions
+const SuccessDeleteModal = ({ onClose }) => (
+  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-2xl transform transition-all duration-300 ease-in-out max-w-md w-full mx-4">
+      <div className="flex flex-col items-center text-center">
+        {/* Success Icon */}
+        <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4">
+          <svg
+            className="w-8 h-8 text-green-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M5 13l4 4L19 7"
+            ></path>
+          </svg>
+        </div>
+
+        {/* Success Message */}
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
+          Successfully Deleted!
+        </h2>
+        <p className="text-gray-600 dark:text-gray-300 mb-6">
+          The item has been removed from your borrow list.
+        </p>
+
+        {/* Button */}
+        <button
+          onClick={onClose}
+          className="bg-primary text-white font-semibold py-2 px-6 rounded-lg 
+          transform transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 
+          focus:ring-primary focus:ring-opacity-50"
+        >
+          Continue
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+const SubmitSuccessModal = ({ onClose }) => (
+  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-2xl transform transition-all duration-300 ease-in-out max-w-md w-full mx-4">
+      <div className="flex flex-col items-center text-center">
+        {/* Success Icon */}
+        <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4">
+          <svg
+            className="w-8 h-8 text-green-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M5 13l4 4L19 7"
+            ></path>
+          </svg>
+        </div>
+
+        {/* Success Message */}
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
+          Successfully Submitted!
+        </h2>
+        <p className="text-gray-600 dark:text-gray-300 mb-6">
+          Your borrow list has been submitted successfully.
+        </p>
+
+        {/* Button */}
+        <button
+          onClick={onClose}
+          className="bg-primary text-white font-semibold py-2 px-6 rounded-lg 
+          transform transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 
+          focus:ring-primary focus:ring-opacity-50"
+        >
+          Continue
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
 const BorrowList = () => {
   const [borrowList, setBorrowList] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -113,6 +202,8 @@ const BorrowList = () => {
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  const [showSuccessDelete, setShowSuccessDelete] = useState(false);
+  const [showSubmitSuccess, setShowSubmitSuccess] = useState(false);
 
   const navigate = useNavigate();
 
@@ -225,8 +316,9 @@ const BorrowList = () => {
   const handleConfirmDelete = async () => {
     if (itemToDelete) {
       await handleRemoveItem(itemToDelete);
+      handleCloseDeleteDialog();
+      setShowSuccessDelete(true); // Show success modal after deletion
     }
-    handleCloseDeleteDialog();
   };
 
   const handleSubmitList = async () => {
@@ -234,7 +326,6 @@ const BorrowList = () => {
     setIsSubmitting(true);
 
     try {
-      // Show loading state during submission
       setLoading(true);
 
       const submitResponse = await axios.post(
@@ -261,35 +352,18 @@ const BorrowList = () => {
 
       toast.success("Borrow list submitted and deleted successfully");
       setBorrowList(null);
-
       handleCloseConfirmDialog();
+      setShowSubmitSuccess(true); // Show success modal after submission
     } catch (error) {
       handleError(error, "Failed to submit borrow list");
     } finally {
       setIsSubmitting(false);
-      setLoading(false); // Hide loading state after submission
+      setLoading(false);
     }
   };
 
   if (loading) {
-    return (
-      <div className="relative">
-        <Navbar className="z-50" />
-        <div className="container mx-auto px-4 pt-8">
-          <div className="text-left mt-8 mb-16">
-            <h1
-              data-aos="fade-up"
-              className="text-5xl font-bold text-gray-800 dark:text-white relative inline-block
-              after:content-[''] after:block after:w-1/2 after:h-1 after:bg-primary
-              after:mt-2 after:rounded-full"
-            >
-              BORROW LIST
-            </h1>
-          </div>
-        </div>
-        <LoadingState />
-      </div>
-    );
+    return <LoadingState />;
   }
 
   return (
@@ -313,7 +387,7 @@ const BorrowList = () => {
         <div className="container mx-auto px-4">
           <div className="w-full bg-white rounded shadow border border-gray-200 flex flex-col">
             <div className="p-2 border-b border-gray-200 flex justify-between items-center">
-              <span className="text-sm text-blue-500 border border-blue-500 rounded px-2">
+              <span className="text-sm text-black-500 border border-primary rounded px-2">
                 Draft
               </span>
             </div>
@@ -352,7 +426,7 @@ const BorrowList = () => {
                       </button>
                       <button
                         onClick={handleSubmitList}
-                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                        className="px-4 py-2 bg-primary text-white rounded  transition"
                         disabled={isSubmitting}
                       >
                         {isSubmitting ? "Submitting..." : "Confirm"}
@@ -378,7 +452,7 @@ const BorrowList = () => {
                       </button>
                       <button
                         onClick={handleConfirmDelete}
-                        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+                        className="px-4 py-2 bg-primary text-white rounded transition"
                         disabled={isRemoving}
                       >
                         {isRemoving ? "Deleting..." : "Delete"}
@@ -389,7 +463,7 @@ const BorrowList = () => {
               )}
               <button
                 onClick={handleOpenConfirmDialog}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                className="px-4 py-2 bg-primary text-white rounded transition"
                 disabled={borrowList.items.length === 0 || isSubmitting}
               >
                 Submit
@@ -397,6 +471,12 @@ const BorrowList = () => {
             </div>
           </div>
         </div>
+      )}
+      {showSuccessDelete && (
+        <SuccessDeleteModal onClose={() => setShowSuccessDelete(false)} />
+      )}
+      {showSubmitSuccess && (
+        <SubmitSuccessModal onClose={() => setShowSubmitSuccess(false)} />
       )}
     </div>
   );
