@@ -282,6 +282,7 @@ const Catalog = () => {
             aria-label="Filter by category"
           >
             <option value="">All Categories</option>
+    
             {Array.from(new Set(equipmentItems.map((e) => e.category))).map(
               (category) => (
                 <option key={category} value={category}>
