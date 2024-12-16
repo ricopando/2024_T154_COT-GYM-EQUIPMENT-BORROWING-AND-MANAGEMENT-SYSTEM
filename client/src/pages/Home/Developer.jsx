@@ -36,10 +36,10 @@ const ProductsData = [
 
 const Developers = () => {
   return (
-    <div className="mt-14 mb-12">
+    <div className="mt-14 mb-12 h-[550px]">
       <div className="container">
         {/* Header section */}
-        <div className="text-center mb-10 max-w-[600px] mx-auto">
+        <div className="text-center mb-20 max-w-[600px] mx-auto ">
           <h1 data-aos="fade-up" className="text-3xl font-bold">
             DEVELOPERS
           </h1>
