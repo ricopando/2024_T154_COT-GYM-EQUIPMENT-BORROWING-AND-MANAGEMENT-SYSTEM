@@ -11,6 +11,11 @@ import {
   CategoryScale,
   LinearScale,
 } from "chart.js";
+import { FaExchangeAlt } from "react-icons/fa"; // For Total Transactions
+import { FaTools } from "react-icons/fa"; // For Total Equipment
+import { FaClock } from "react-icons/fa"; // For Pending Requests
+import { FaCheckCircle } from "react-icons/fa"; // For Returned Requests
+import { FaThumbsUp } from "react-icons/fa"; // For Approved Requests
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale);
@@ -156,109 +161,135 @@ const Dashboard = () => {
     handleFetchAdvice();
   }, []);
 
+  // Add this useEffect for auto-generating advice
+  useEffect(() => {
+    // Initial fetch
+    handleFetchAdvice();
+
+    // Set up interval for fetching every 5 seconds
+    const intervalId = setInterval(handleFetchAdvice, 5000);
+
+    // Cleanup function to clear interval when component unmounts
+    return () => clearInterval(intervalId);
+  }, []); // Empty dependency array means this runs once on mount
+
   return (
     <div className="flex h-screen">
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <Navbar />
         <main className="flex-1 p-4">
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">Dashboard</h1>
+          <div className="text-left mt-8 mb-10">
+            <h1
+              className="text-5xl font-bold text-black dark:text-white relative inline-block
+              after:content-[''] after:block after:w-1/2 after:h-1 after:bg-primary
+              after:mt-2 after:rounded-full"
+            >
+              DASHBOARD
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-4 text-lg">
+              Monitor and manage your system overview
+            </p>
+          </div>
 
           {/* Dashboard Cards Container */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-            {/* Total Transactions Card */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            {/* First Row - 3 Cards */}
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-lg font-semibold text-gray-700 mb-2">
-                Total Transactions
-              </h2>
-              <p className="text-3xl font-bold text-purple-600">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-black">
+                  Total Transactions
+                </h2>
+                <FaExchangeAlt className="text-primary text-2xl" />
+              </div>
+              <p className="text-3xl font-bold text-primary">
                 {totalTransactions}
               </p>
             </div>
 
-            {/* Equipment Count Card */}
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-lg font-semibold text-gray-700 mb-2">
-                Total Equipment
-              </h2>
-              <p className="text-3xl font-bold text-blue-600">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-black">
+                  Total Equipment
+                </h2>
+                <FaTools className="text-secondary text-2xl" />
+              </div>
+              <p className="text-3xl font-bold text-primary">
                 {equipmentCount}
               </p>
             </div>
 
-            {/* Pending Borrows Card */}
+            {/* Weather & Advice Card */}
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-lg font-semibold text-gray-700 mb-2">
-                Pending Borrow Requests
-              </h2>
-              <p className="text-3xl font-bold text-orange-500">
+              <div className="flex justify-between items-start">
+                {/* Weather Section */}
+                {weatherData ? (
+                  <div className="flex items-center">
+                    <img
+                      src={weatherData.current.condition.icon}
+                      alt={weatherData.current.condition.text}
+                      className="w-12 h-12 mr-3"
+                    />
+                    <div>
+                      <p className="text-2xl font-bold text-black">
+                        {weatherData.current.temp_c}°C
+                      </p>
+                      <p className="text-sm text-black">
+                        {weatherData.current.condition.text}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-black text-sm">Loading weather...</p>
+                )}
+
+                {/* Divider */}
+                <div className="h-12 w-px bg-gray-200 mx-6"></div>
+
+                {/* Advice Section */}
+                <div className="flex-1">
+                  <p className="text-gray-600 text-sm italic mb-2">
+                    "{adviceData.slip.advice}"
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-black">
+                  Pending Borrow Requests
+                </h2>
+                <FaClock className="text-yellow-500 text-2xl" />
+              </div>
+              <p className="text-3xl font-bold text-primary">
                 {pendingBorrowCount}
               </p>
             </div>
 
-            {/* Returned Borrows Card */}
+            {/* Second Row - 3 Cards */}
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-lg font-semibold text-gray-700 mb-2">
-                Returned Borrow Requests
-              </h2>
-              <p className="text-3xl font-bold text-green-500">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-black">
+                  Returned Borrow Requests
+                </h2>
+                <FaCheckCircle className="text-green-500 text-2xl" />
+              </div>
+              <p className="text-3xl font-bold text-primary">
                 {returnedBorrowCount}
               </p>
             </div>
 
-            {/* Approved Borrows Card */}
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-lg font-semibold text-gray-700 mb-2">
-                Approved Borrow Requests
-              </h2>
-              <p className="text-3xl font-bold text-green-500">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-black">
+                  Approved Borrow Requests
+                </h2>
+                <FaThumbsUp className="text-green-500 text-2xl" />
+              </div>
+              <p className="text-3xl font-bold text-primary">
                 {approvedBorrowCount}
               </p>
-            </div>
-
-            {/* Weather Card */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-lg font-semibold text-gray-700 mb-2">
-                Current Weather
-              </h2>
-              {weatherData ? (
-                <div className="flex items-center space-x-4">
-                  <img
-                    src={weatherData.current.condition.icon}
-                    alt={weatherData.current.condition.text}
-                    className="w-16 h-16"
-                  />
-                  <div>
-                    <p className="text-3xl font-bold text-blue-600">
-                      {weatherData.current.temp_c}°C
-                    </p>
-                    <p className="text-gray-600">
-                      {weatherData.current.condition.text}
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-gray-500">Loading weather data...</p>
-              )}
-            </div>
-
-            {/* Advice Card */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-lg font-semibold text-gray-700 mb-2">
-                Daily Advice
-              </h2>
-              <div className="flex flex-col">
-                <p className="text-gray-600 italic">
-                  "{adviceData.slip.advice}"
-                </p>
-                <button
-                  onClick={handleFetchAdvice}
-                  className="mt-4 text-sm text-blue-500 hover:text-blue-700 self-end"
-                  aria-label="Get new advice"
-                >
-                  Get New Advice
-                </button>
-              </div>
             </div>
           </div>
         </main>

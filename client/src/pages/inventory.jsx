@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import Sidebar from '../components/Sidebar/Sidebar';
-import { FaEye } from 'react-icons/fa';
-import DataTable from 'react-data-table-component';
-import Navbar from '../components/Navbar/AdminNavbar';
-import HistoryModal from '../components/HistoryModal';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import Sidebar from "../components/Sidebar/Sidebar";
+import { FaEye } from "react-icons/fa";
+import DataTable from "react-data-table-component";
+import Navbar from "../components/Navbar/AdminNavbar";
+import HistoryModal from "../components/HistoryModal";
 
 const Inventory = () => {
   const [equipmentItems, setEquipmentItems] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [filteredData, setFilteredData] = useState([]);
   const [modalState, setModalState] = useState({
     isOpen: false,
@@ -22,23 +22,23 @@ const Inventory = () => {
     borrowed: false,
   });
   const [messages, setMessages] = useState({
-    success: '',
-    error: '',
+    success: "",
+    error: "",
   });
   const [newEquipment, setNewEquipment] = useState({
-    name: '',
-    description: '',
-    image: '',
-    category: '',
-    serialNumber: '',
-    model: '',
-    availabilityStatus: 'Available',
+    name: "",
+    description: "",
+    image: "",
+    category: "",
+    serialNumber: "",
+    model: "",
+    availabilityStatus: "Available",
   });
   const [imageModal, setImageModal] = useState({
     isOpen: false,
-    imageUrl: '',
+    imageUrl: "",
   });
-  const [categoryFilter, setCategoryFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState("");
   const [loading, setLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -50,7 +50,7 @@ const Inventory = () => {
   const fetchEquipment = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:8000/api/equipment');
+      const response = await axios.get("http://localhost:8000/api/equipment");
       const dataWithId = response.data.map((item, index) => ({
         ...item,
         id: index + 1,
@@ -58,7 +58,7 @@ const Inventory = () => {
       setEquipmentItems(dataWithId);
       setFilteredData(dataWithId);
     } catch (error) {
-      setMessages({ ...messages, error: 'Failed to fetch equipment data.' });
+      setMessages({ ...messages, error: "Failed to fetch equipment data." });
       setDialogs({ ...dialogs, error: true });
     } finally {
       setLoading(false);
@@ -67,11 +67,11 @@ const Inventory = () => {
 
   const handleDeleteEquipment = async () => {
     if (!modalState.selectedItem) {
-      console.error('No item selected for deletion');
+      console.error("No item selected for deletion");
       return;
     }
 
-    if (modalState.selectedItem.availabilityStatus === 'Borrowed') {
+    if (modalState.selectedItem.availabilityStatus === "Borrowed") {
       setDialogs({ ...dialogs, borrowed: true });
       return;
     }
@@ -79,14 +79,18 @@ const Inventory = () => {
     setLoading(true);
     setIsDeleting(true);
     try {
-      console.log(`Attempting to delete equipment with ID: ${modalState.selectedItem._id}`);
-      await axios.delete(`http://localhost:8000/api/equipment/${modalState.selectedItem._id}`);
-      setMessages({ ...messages, success: 'Equipment deleted successfully!' });
+      console.log(
+        `Attempting to delete equipment with ID: ${modalState.selectedItem._id}`
+      );
+      await axios.delete(
+        `http://localhost:8000/api/equipment/${modalState.selectedItem._id}`
+      );
+      setMessages({ ...messages, success: "Equipment deleted successfully!" });
       setDialogs({ ...dialogs, confirmDelete: false, success: true });
       fetchEquipment();
     } catch (error) {
-      console.error('Failed to delete equipment:', error);
-      setMessages({ ...messages, error: 'Failed to delete equipment.' });
+      console.error("Failed to delete equipment:", error);
+      setMessages({ ...messages, error: "Failed to delete equipment." });
       setDialogs({ ...dialogs, error: true });
     } finally {
       setLoading(false);
@@ -101,27 +105,40 @@ const Inventory = () => {
 
   const handleAvailabilityChange = async (event, item) => {
     const newStatus = event.target.value;
-    if (item.availabilityStatus === 'Borrowed') {
+    if (item.availabilityStatus === "Borrowed") {
       // Prevent any changes if the item is already 'Borrowed'
       return;
     }
     try {
-      const response = await axios.put(`http://localhost:8000/api/equipment/${item._id}`, {
-        ...item,
-        availabilityStatus: newStatus,
-      });
+      const response = await axios.put(
+        `http://localhost:8000/api/equipment/${item._id}`,
+        {
+          ...item,
+          availabilityStatus: newStatus,
+        }
+      );
 
       if (response.status === 200) {
-        setEquipmentItems(equipmentItems.map(equip => 
-          equip._id === item._id ? { ...equip, availabilityStatus: newStatus } : equip
-        ));
-        setMessages({ ...messages, success: 'Availability status updated successfully!' });
+        setEquipmentItems(
+          equipmentItems.map((equip) =>
+            equip._id === item._id
+              ? { ...equip, availabilityStatus: newStatus }
+              : equip
+          )
+        );
+        setMessages({
+          ...messages,
+          success: "Availability status updated successfully!",
+        });
         setDialogs({ ...dialogs, success: true });
       } else {
-        throw new Error('Failed to update status');
+        throw new Error("Failed to update status");
       }
     } catch (error) {
-      setMessages({ ...messages, error: 'Failed to update availability status.' });
+      setMessages({
+        ...messages,
+        error: "Failed to update availability status.",
+      });
       setDialogs({ ...dialogs, error: true });
     }
   };
@@ -135,7 +152,7 @@ const Inventory = () => {
   };
 
   const handleEditClick = (item) => {
-    if (item.availabilityStatus === 'Borrowed') {
+    if (item.availabilityStatus === "Borrowed") {
       setDialogs({ ...dialogs, borrowed: true });
       return;
     }
@@ -153,36 +170,40 @@ const Inventory = () => {
 
   const handleAddClick = () => {
     setNewEquipment({
-      name: '',
-      description: '',
-      image: '',
-      category: '',
-      serialNumber: '',
-      model: '',
-      availabilityStatus: 'Available',
+      name: "",
+      description: "",
+      image: "",
+      category: "",
+      serialNumber: "",
+      model: "",
+      availabilityStatus: "Available",
     });
     setModalState({ isOpen: true, isEditMode: false, selectedItem: null });
   };
 
   const handleImageUpload = async (file) => {
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append("image", file);
 
     try {
-      const response = await axios.post('https://api.imgbb.com/1/upload', formData, {
-        params: {
-          key: import.meta.env.VITE_IMGBB_API_KEY, // Access the API key from environment variables
-        },
-        withCredentials: false, // Ensure credentials are not included
-      });
+      const response = await axios.post(
+        "https://api.imgbb.com/1/upload",
+        formData,
+        {
+          params: {
+            key: import.meta.env.VITE_IMGBB_API_KEY, // Access the API key from environment variables
+          },
+          withCredentials: false, // Ensure credentials are not included
+        }
+      );
 
       if (response.data.success) {
         return response.data.data.url; // Return the URL of the uploaded image
       } else {
-        throw new Error('Image upload failed');
+        throw new Error("Image upload failed");
       }
     } catch (error) {
-      setMessages({ ...messages, error: 'Failed to upload image.' });
+      setMessages({ ...messages, error: "Failed to upload image." });
       setDialogs({ ...dialogs, error: true });
       return null;
     }
@@ -208,20 +229,29 @@ const Inventory = () => {
           equipmentData
         );
         if (response.status === 200) {
-          setMessages({ ...messages, success: 'Equipment updated successfully!' });
+          setMessages({
+            ...messages,
+            success: "Equipment updated successfully!",
+          });
         }
       } else {
         // Add new equipment
-        const response = await axios.post('http://localhost:8000/api/equipment', equipmentData);
+        const response = await axios.post(
+          "http://localhost:8000/api/equipment",
+          equipmentData
+        );
         if (response.status === 201) {
-          setMessages({ ...messages, success: 'Equipment added successfully!' });
+          setMessages({
+            ...messages,
+            success: "Equipment added successfully!",
+          });
         }
       }
       setDialogs({ ...dialogs, success: true });
       setModalState({ ...modalState, isOpen: false });
       fetchEquipment();
     } catch (error) {
-      setMessages({ ...messages, error: 'Failed to save equipment.' });
+      setMessages({ ...messages, error: "Failed to save equipment." });
       setDialogs({ ...dialogs, error: true });
     } finally {
       setLoading(false);
@@ -241,11 +271,20 @@ const Inventory = () => {
   useEffect(() => {
     if (searchQuery || categoryFilter) {
       const lowercasedQuery = searchQuery.toLowerCase();
-      const filtered = equipmentItems.filter(item => {
-        const matchesQuery = ['id', 'name', 'category', 'availabilityStatus', 'serialNumber', 'model'].some(field =>
+      const filtered = equipmentItems.filter((item) => {
+        const matchesQuery = [
+          "id",
+          "name",
+          "category",
+          "availabilityStatus",
+          "serialNumber",
+          "model",
+        ].some((field) =>
           item[field]?.toString().toLowerCase().includes(lowercasedQuery)
         );
-        const matchesCategory = categoryFilter ? item.category === categoryFilter : true;
+        const matchesCategory = categoryFilter
+          ? item.category === categoryFilter
+          : true;
         return matchesQuery && matchesCategory;
       });
       setFilteredData(filtered);
@@ -255,7 +294,7 @@ const Inventory = () => {
   }, [searchQuery, categoryFilter, equipmentItems]);
 
   const handleDeleteClick = (item) => {
-    if (item.availabilityStatus === 'Borrowed') {
+    if (item.availabilityStatus === "Borrowed") {
       setDialogs({ ...dialogs, borrowed: true });
       return;
     }
@@ -270,54 +309,59 @@ const Inventory = () => {
   // Define columns for the DataTable
   const columns = [
     {
-      name: 'ID',
-      selector: row => row.id,
+      name: "ID",
+      selector: (row) => row.id,
       sortable: true,
-      className: 'text-center',
+      className: "text-center",
     },
     {
-      name: 'Equipment Name',
-      selector: row => row.name,
+      name: "Equipment Name",
+      selector: (row) => row.name,
       sortable: true,
-      className: 'text-left',
+      className: "text-left",
     },
     {
-      name: 'Category',
-      selector: row => row.category,
+      name: "Category",
+      selector: (row) => row.category,
       sortable: true,
-      className: 'text-left',
+      className: "text-left",
     },
     {
-      name: 'Availability',
-      cell: row => (
+      name: "Availability",
+      cell: (row) => (
         <select
           value={row.availabilityStatus}
           onChange={(event) => handleAvailabilityChange(event, row)}
           className="bg-white border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring-2 focus:ring-blue-300"
           aria-label={`Change availability status for ${row.name}`}
-          disabled={row.availabilityStatus === 'Borrowed'}
+          disabled={row.availabilityStatus === "Borrowed"}
         >
           <option value="Available">Available</option>
           <option value="Maintenance">Maintenance</option>
-          <option value="Borrowed" disabled={row.availabilityStatus === 'Borrowed'}>Borrowed</option>
+          <option
+            value="Borrowed"
+            disabled={row.availabilityStatus === "Borrowed"}
+          >
+            Borrowed
+          </option>
         </select>
       ),
     },
     {
-      name: 'Serial Number',
-      selector: row => row.serialNumber,
+      name: "Serial Number",
+      selector: (row) => row.serialNumber,
       sortable: true,
-      className: 'text-left',
+      className: "text-left",
     },
     {
-      name: 'Model',
-      selector: row => row.model,
+      name: "Model",
+      selector: (row) => row.model,
       sortable: true,
-      className: 'text-left',
+      className: "text-left",
     },
     {
-      name: 'Actions',
-      cell: row => (
+      name: "Actions",
+      cell: (row) => (
         <div className="flex space-x-2">
           <button
             onClick={() => handleImageClick(row.image)}
@@ -330,8 +374,13 @@ const Inventory = () => {
             onClick={() => handleEditClick(row)}
             className="text-blue-600 hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-300"
             aria-label={`Edit ${row.name}`}
-            disabled={row.availabilityStatus === 'Borrowed'}
-            style={{ cursor: row.availabilityStatus === 'Borrowed' ? 'not-allowed' : 'pointer' }}
+            disabled={row.availabilityStatus === "Borrowed"}
+            style={{
+              cursor:
+                row.availabilityStatus === "Borrowed"
+                  ? "not-allowed"
+                  : "pointer",
+            }}
           >
             Edit
           </button>
@@ -339,8 +388,13 @@ const Inventory = () => {
             onClick={() => handleDeleteClick(row)}
             className="text-red-600 hover:text-red-900 focus:outline-none focus:ring-2 focus:ring-red-300"
             aria-label={`Delete ${row.name}`}
-            disabled={row.availabilityStatus === 'Borrowed'}
-            style={{ cursor: row.availabilityStatus === 'Borrowed' ? 'not-allowed' : 'pointer' }}
+            disabled={row.availabilityStatus === "Borrowed"}
+            style={{
+              cursor:
+                row.availabilityStatus === "Borrowed"
+                  ? "not-allowed"
+                  : "pointer",
+            }}
           >
             Delete
           </button>
@@ -348,7 +402,6 @@ const Inventory = () => {
             onClick={() => handleHistoryClick(row)}
             className="text-blue-600 hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-300"
             aria-label={`View history of ${row.name}`}
-          
           >
             History
           </button>
@@ -365,8 +418,14 @@ const Inventory = () => {
         <div className="flex-1 p-8 overflow-y-auto">
           <div className="max-w-full mx-auto">
             <div className="mb-8">
-              <h1 className="text-2xl font-bold text-gray-900">Inventory Management</h1>
-              <p className="mt-2 text-sm text-gray-600">
+              <h1
+                className="text-5xl font-bold text-black dark:text-white relative inline-block
+                after:content-[''] after:block after:w-1/2 after:h-1 after:bg-primary
+                after:mt-2 after:rounded-full"
+              >
+                INVENTORY
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-4 text-lg">
                 Manage and track all equipment in the inventory
               </p>
             </div>
@@ -384,8 +443,18 @@ const Inventory = () => {
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                       <div className="absolute left-3 top-2.5 text-gray-400">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                          />
                         </svg>
                       </div>
                     </div>
@@ -403,7 +472,7 @@ const Inventory = () => {
                     </select>
                     <button
                       onClick={handleAddClick}
-                      className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                      className="px-4 py-2 bg-primary text-white text-sm rounded-lg transition-colors"
                     >
                       Add Equipment
                     </button>
@@ -426,23 +495,23 @@ const Inventory = () => {
                   customStyles={{
                     headRow: {
                       style: {
-                        backgroundColor: '#F9FAFB',
-                        borderBottom: '1px solid #E5E7EB',
+                        backgroundColor: "#F9FAFB",
+                        borderBottom: "1px solid #E5E7EB",
                       },
                     },
                     headCells: {
                       style: {
-                        fontSize: '0.875rem',
-                        fontWeight: '600',
-                        color: '#374151',
-                        padding: '12px 16px',
+                        fontSize: "0.875rem",
+                        fontWeight: "600",
+                        color: "#374151",
+                        padding: "12px 16px",
                       },
                     },
                     cells: {
                       style: {
-                        fontSize: '0.875rem',
-                        color: '#1F2937',
-                        padding: '12px 16px',
+                        fontSize: "0.875rem",
+                        color: "#1F2937",
+                        padding: "12px 16px",
                       },
                     },
                   }}
@@ -455,13 +524,13 @@ const Inventory = () => {
           {imageModal.isOpen && (
             <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center">
               <div className="relative bg-white p-4 rounded-lg shadow-lg max-w-xs md:max-w-md">
-                <img 
-                  src={imageModal.imageUrl} 
-                  alt="Equipment" 
+                <img
+                  src={imageModal.imageUrl}
+                  alt="Equipment"
                   className="w-full h-auto object-contain rounded"
                 />
                 <button
-                  onClick={() => setImageModal({ isOpen: false, imageUrl: '' })}
+                  onClick={() => setImageModal({ isOpen: false, imageUrl: "" })}
                   className="absolute top-0 right-0 mt-2 mr-2 text-red-600 hover:text-red-800"
                   aria-label="Close image modal"
                 >
@@ -477,7 +546,9 @@ const Inventory = () => {
               <div className="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
                 <div className="mt-3 text-center">
                   <h3 className="text-lg leading-6 font-medium text-gray-900">
-                    {modalState.isEditMode ? 'Edit Equipment' : 'Add New Equipment'}
+                    {modalState.isEditMode
+                      ? "Edit Equipment"
+                      : "Add New Equipment"}
                   </h3>
                   <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input
@@ -531,18 +602,28 @@ const Inventory = () => {
                   </div>
                   <div className="flex flex-col items-center px-4 py-3 space-y-2">
                     <button
-                      onClick={() => setModalState({ ...modalState, isOpen: false })}
-                      className={`px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      onClick={() =>
+                        setModalState({ ...modalState, isOpen: false })
+                      }
+                      className={`px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300 ${
+                        isSaving ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
                       disabled={isSaving}
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleAddOrEditEquipment}
-                      className={`px-4 py-2 bg-primary text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className={`px-4 py-2 bg-primary text-white text-base font-medium rounded-md w-full shadow-sm ${
+                        isSaving ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
                       disabled={isSaving}
                     >
-                      {isSaving ? 'Saving...' : modalState.isEditMode ? 'Update' : 'Save'}
+                      {isSaving
+                        ? "Saving..."
+                        : modalState.isEditMode
+                        ? "Update"
+                        : "Save"}
                     </button>
                   </div>
                 </div>
@@ -563,7 +644,9 @@ const Inventory = () => {
                   </div>
                   <div className="items-center px-4 py-3">
                     <button
-                      onClick={() => setDialogs({ ...dialogs, confirmDelete: false })}
+                      onClick={() =>
+                        setDialogs({ ...dialogs, confirmDelete: false })
+                      }
                       className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
                       disabled={isDeleting}
                     >
@@ -571,7 +654,7 @@ const Inventory = () => {
                     </button>
                     <button
                       onClick={handleDeleteEquipment}
-                      className="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300 mt-2"
+                      className="px-4 py-2 bg-primary text-white text-base font-medium rounded-md w-full shadow-sm  mt-2"
                     >
                       Delete
                     </button>
@@ -594,7 +677,7 @@ const Inventory = () => {
                   <div className="items-center px-4 py-3">
                     <button
                       onClick={() => setDialogs({ ...dialogs, success: false })}
-                      className="px-4 py-2 bg-primary text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      className="px-4 py-2 bg-primary text-white text-base font-medium rounded-md w-full shadow-sm "
                     >
                       OK
                     </button>
@@ -617,7 +700,7 @@ const Inventory = () => {
                   <div className="items-center px-4 py-3">
                     <button
                       onClick={() => setDialogs({ ...dialogs, error: false })}
-                      className="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300"
+                      className="px-4 py-2 bg-primary text-white text-base font-medium rounded-md w-full shadow-sm"
                     >
                       OK
                     </button>
@@ -652,9 +735,13 @@ const Inventory = () => {
   }
 
   @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
-`}</style>
+`}</style>;
 
 export default Inventory;

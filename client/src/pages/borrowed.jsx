@@ -1,16 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import Sidebar from '../components/Sidebar/Sidebar';
-import Navbar from '../components/Navbar/AdminNavbar';
-import LoadingModal from '../components/modal/loadingModal';
-import DataTable from 'react-data-table-component';
-import EquipmentDetails from '../components/Borrowed/EquipmentDetails';
-import { toast } from 'react-hot-toast';
-import ConfirmReturn from '../components/Borrowed/ConfirmReturn';
-import ApprovedModal from '../components/modal/approvedModal';
-import Form from '../components/Form';
-
-
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import Sidebar from "../components/Sidebar/Sidebar";
+import Navbar from "../components/Navbar/AdminNavbar";
+import LoadingModal from "../components/modal/loadingModal";
+import DataTable from "react-data-table-component";
+import EquipmentDetails from "../components/Borrowed/EquipmentDetails";
+import { toast } from "react-hot-toast";
+import ConfirmReturn from "../components/Borrowed/ConfirmReturn";
+import ApprovedModal from "../components/modal/approvedModal";
+import Form from "../components/Form";
 
 const Borrowed = () => {
   const [borrowedItems, setBorrowedItems] = useState([]);
@@ -28,16 +26,19 @@ const Borrowed = () => {
 
   const fetchAllBorrowedItems = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/borrow-items", {
-        withCredentials: true,
-      });
+      const response = await axios.get(
+        "http://localhost:8000/api/borrow-items",
+        {
+          withCredentials: true,
+        }
+      );
       console.log("Fetched data:", response.data);
       const dataWithId = response.data.map((item, index) => ({
         ...item,
         id: index + 1,
       }));
 
-      const filteredData = dataWithId.filter(item => {
+      const filteredData = dataWithId.filter((item) => {
         if (item.status !== "Approved" && item.status !== "Returned") {
           return false;
         }
@@ -76,33 +77,33 @@ const Borrowed = () => {
 
   const confirmReturnTransaction = async () => {
     if (!transactionToReturn) {
-        toast.error("No transaction selected for return");
-        return;
+      toast.error("No transaction selected for return");
+      return;
     }
 
     try {
-        setConfirmReturnDialogOpen(false);
-        setApproveLoading(true);
-        setShowApprovedModal(true);
+      setConfirmReturnDialogOpen(false);
+      setApproveLoading(true);
+      setShowApprovedModal(true);
 
-        const response = await axios.patch(
-            `http://localhost:8000/api/borrow-items/${transactionToReturn}/return`,
-            { status: 'Returned' },
-            { withCredentials: true }
-        );
+      const response = await axios.patch(
+        `http://localhost:8000/api/borrow-items/${transactionToReturn}/return`,
+        { status: "Returned" },
+        { withCredentials: true }
+      );
 
-        if (response.status === 200) {
-            toast.success("Items returned successfully");
-            await fetchAllBorrowedItems();
-        }
+      if (response.status === 200) {
+        toast.success("Items returned successfully");
+        await fetchAllBorrowedItems();
+      }
     } catch (error) {
-        console.error("Return transaction failed:", error);
-        toast.error(error.response?.data?.message || "Failed to return items");
+      console.error("Return transaction failed:", error);
+      toast.error(error.response?.data?.message || "Failed to return items");
     } finally {
-        setTransactionToReturn(null);
-        setConfirmReturnDialogOpen(false);
-        setApproveLoading(false);
-        setShowApprovedModal(false);
+      setTransactionToReturn(null);
+      setConfirmReturnDialogOpen(false);
+      setApproveLoading(false);
+      setShowApprovedModal(false);
     }
   };
 
@@ -111,9 +112,9 @@ const Borrowed = () => {
       setEquipmentModalOpen(false);
       return;
     }
-    const equipmentWithTransactionId = equipment.map(equip => ({
+    const equipmentWithTransactionId = equipment.map((equip) => ({
       ...equip,
-      transactionId
+      transactionId,
     }));
     setEquipmentDetails(equipmentWithTransactionId);
     setEquipmentModalOpen(true);
@@ -122,7 +123,9 @@ const Borrowed = () => {
   // Ensure useEffect is correctly set up to update equipment details
   useEffect(() => {
     if (equipmentModalOpen) {
-      const currentTransaction = borrowedItems.find(item => item.id === equipmentDetails[0]?.transactionId);
+      const currentTransaction = borrowedItems.find(
+        (item) => item.id === equipmentDetails[0]?.transactionId
+      );
       if (currentTransaction) {
         setEquipmentDetails(currentTransaction.equipment);
       }
@@ -135,10 +138,11 @@ const Borrowed = () => {
   };
 
   // Filtered data based on search query
-  const filteredItems = borrowedItems.filter(item =>
-    item.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.item.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredItems = borrowedItems.filter(
+    (item) =>
+      item.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.item.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const updateEquipmentStatus = (borrowedItemId, itemId, newStatus) => {
@@ -160,14 +164,23 @@ const Borrowed = () => {
   };
 
   const checkAndReturnTransaction = async (borrowedItemId) => {
-    const transaction = borrowedItems.find(item => item._id === borrowedItemId);
-    if (transaction && transaction.equipment.every(equip => equip.status === 'Returned')) {
+    const transaction = borrowedItems.find(
+      (item) => item._id === borrowedItemId
+    );
+    if (
+      transaction &&
+      transaction.equipment.every((equip) => equip.status === "Returned")
+    ) {
       try {
-        const response = await axios.patch(`http://localhost:8000/api/borrow-items/${borrowedItemId}`, {
-          status: 'Returned'
-        }, {
-          withCredentials: true,
-        });
+        const response = await axios.patch(
+          `http://localhost:8000/api/borrow-items/${borrowedItemId}`,
+          {
+            status: "Returned",
+          },
+          {
+            withCredentials: true,
+          }
+        );
 
         if (response.status === 200) {
           console.log("Transaction status updated to Returned.");
@@ -196,43 +209,47 @@ const Borrowed = () => {
   };
 
   const columns = [
-    { 
-      name: 'Transaction ID', 
-      selector: row => row.item, 
+    {
+      name: "Transaction ID",
+      selector: (row) => row.item,
       sortable: true,
       style: {
-        fontWeight: 'bold',
+        fontWeight: "bold",
       },
     },
-    { name: 'User', selector: row => row.user.name, sortable: true },
-    { name: 'Email', selector: row => row.user.email, sortable: true },
-    { 
-      name: 'Transaction Date', 
-      selector: row => new Date(row.createdAt).toLocaleDateString(), 
-      sortable: true 
-    },
-    { 
-      name: 'Transaction Time', 
-      selector: row => new Date(row.createdAt).toLocaleTimeString(), 
-      sortable: true 
-    },
-    { 
-      name: 'Status', 
-      selector: row => row.status, 
+    { name: "User", selector: (row) => row.user.name, sortable: true },
+    { name: "Email", selector: (row) => row.user.email, sortable: true },
+    {
+      name: "Transaction Date",
+      selector: (row) => new Date(row.createdAt).toLocaleDateString(),
       sortable: true,
-      cell: row => (
-        <span className={`px-3 py-1 rounded-full text-xs ${
-          row.status === 'Approved' ? 'bg-green-100 text-green-800' : 
-          row.status === 'Returned' ? 'bg-gray-100 text-gray-800' : 
-          'bg-yellow-100 text-yellow-800'
-        }`}>
+    },
+    {
+      name: "Transaction Time",
+      selector: (row) => new Date(row.createdAt).toLocaleTimeString(),
+      sortable: true,
+    },
+    {
+      name: "Status",
+      selector: (row) => row.status,
+      sortable: true,
+      cell: (row) => (
+        <span
+          className={`px-3 py-1 rounded-full text-xs ${
+            row.status === "Approved"
+              ? "bg-green-100 text-green-800"
+              : row.status === "Returned"
+              ? "bg-gray-100 text-gray-800"
+              : "bg-yellow-100 text-yellow-800"
+          }`}
+        >
           {row.status}
         </span>
       ),
     },
     {
-      name: 'Equipment Info',
-      cell: row => (
+      name: "Equipment Info",
+      cell: (row) => (
         <button
           className="px-4 py-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
           onClick={() => openEquipmentModal(row.equipment, row.item)}
@@ -243,8 +260,8 @@ const Borrowed = () => {
       ),
     },
     {
-      name: 'Actions',
-      cell: row => (
+      name: "Actions",
+      cell: (row) => (
         <div className="flex space-x-2">
           <button
             onClick={() => handleReturnTransaction(row.item)}
@@ -256,8 +273,8 @@ const Borrowed = () => {
       ),
     },
     {
-      name: 'Form',
-      cell: row => (
+      name: "Form",
+      cell: (row) => (
         <div className="flex space-x-2">
           <button
             onClick={() => handleFormOpen(row.user, row)}
@@ -278,8 +295,14 @@ const Borrowed = () => {
         <div className="flex-1 p-8 overflow-y-auto">
           <div className="max-w-full mx-auto">
             <div className="mb-8">
-              <h1 className="text-2xl font-bold text-gray-900">Borrowed Equipment</h1>
-              <p className="mt-2 text-sm text-gray-600">
+              <h1
+                className="text-5xl font-bold text-black dark:text-white relative inline-block
+                after:content-[''] after:block after:w-1/2 after:h-1 after:bg-primary
+                after:mt-2 after:rounded-full"
+              >
+                BORROWED EQUIPMENT
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-4 text-lg">
                 Manage and track all borrowed equipment transactions
               </p>
             </div>
@@ -297,8 +320,18 @@ const Borrowed = () => {
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                       <div className="absolute left-3 top-2.5 text-gray-400">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                          />
                         </svg>
                       </div>
                     </div>
@@ -321,23 +354,23 @@ const Borrowed = () => {
                   customStyles={{
                     headRow: {
                       style: {
-                        backgroundColor: '#F9FAFB',
-                        borderBottom: '1px solid #E5E7EB',
+                        backgroundColor: "#F9FAFB",
+                        borderBottom: "1px solid #E5E7EB",
                       },
                     },
                     headCells: {
                       style: {
-                        fontSize: '0.875rem',
-                        fontWeight: '600',
-                        color: '#374151',
-                        padding: '12px 16px',
+                        fontSize: "0.875rem",
+                        fontWeight: "600",
+                        color: "#374151",
+                        padding: "12px 16px",
                       },
                     },
                     cells: {
                       style: {
-                        fontSize: '0.875rem',
-                        color: '#1F2937',
-                        padding: '12px 16px',
+                        fontSize: "0.875rem",
+                        color: "#1F2937",
+                        padding: "12px 16px",
                       },
                     },
                   }}
@@ -364,14 +397,14 @@ const Borrowed = () => {
             onConfirm={confirmReturnTransaction}
           />
           {isFormOpen && (
-            <Form 
-                userDetails={selectedUserDetails}
-                borrowedItems={selectedBorrowedItems}
-                onClose={() => {
-                    setIsFormOpen(false);
-                    setSelectedUserDetails(null);
-                    setSelectedBorrowedItems(null);
-                }}
+            <Form
+              userDetails={selectedUserDetails}
+              borrowedItems={selectedBorrowedItems}
+              onClose={() => {
+                setIsFormOpen(false);
+                setSelectedUserDetails(null);
+                setSelectedBorrowedItems(null);
+              }}
             />
           )}
         </div>
@@ -391,10 +424,13 @@ const Borrowed = () => {
   }
 
   @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
-`}</style>
+`}</style>;
 
 export default Borrowed;
-

@@ -1,31 +1,34 @@
-import { FaTimes } from 'react-icons/fa';
-import axios from 'axios';
-import { useState, useEffect } from 'react';
-import DataTable from 'react-data-table-component';
+import { FaTimes } from "react-icons/fa";
+import axios from "axios";
+import { useState, useEffect } from "react";
+import DataTable from "react-data-table-component";
 
 const AddAdmin = ({ isOpen, onClose, onUserPromoted }) => {
   const [newAdmin, setNewAdmin] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [promotingUserId, setPromotingUserId] = useState(null);
   const [isExemptFromRestriction, setIsExemptFromRestriction] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get('http://localhost:8000/api/auth/users', {
-        withCredentials: true
+      const response = await axios.get("http://localhost:8000/api/auth/users", {
+        withCredentials: true,
       });
-      console.log('User data:', response.data[0]);
-      const filteredUsers = response.data.filter(user => user.role === 'User');
+      console.log("User data:", response.data[0]);
+      const filteredUsers = response.data.filter(
+        (user) => user.role === "User"
+      );
       setUsers(filteredUsers);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch users');
-      console.error('Error fetching users:', err);
+      setError(err.response?.data?.message || "Failed to fetch users");
+      console.error("Error fetching users:", err);
     } finally {
       setIsLoading(false);
     }
@@ -34,25 +37,33 @@ const AddAdmin = ({ isOpen, onClose, onUserPromoted }) => {
   const handlePromoteToAdmin = async (userId) => {
     try {
       setPromotingUserId(userId);
-      const response = await axios.patch(`http://localhost:8000/api/auth/users/${userId}/promote`, {}, {
-        withCredentials: true
-      });
-      
+      const response = await axios.patch(
+        `http://localhost:8000/api/auth/users/${userId}/promote`,
+        {},
+        {
+          withCredentials: true,
+        }
+      );
+
       if (response.data.updatedUser) {
         // Remove the promoted user from the users list
-        setUsers(prevUsers => prevUsers.filter(user => user._id !== userId));
-        
+        setUsers((prevUsers) =>
+          prevUsers.filter((user) => user._id !== userId)
+        );
+
         // Notify parent component about the promotion
         if (onUserPromoted) {
           onUserPromoted(response.data.updatedUser);
         }
-        
-        // Show success message
-        alert('User promoted to admin successfully');
+
+        // Show success modal instead of alert
+        setShowSuccessModal(true);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to promote user to admin');
-      console.error('Error promoting user:', err);
+      setError(
+        err.response?.data?.message || "Failed to promote user to admin"
+      );
+      console.error("Error promoting user:", err);
     } finally {
       setPromotingUserId(null);
     }
@@ -66,8 +77,8 @@ const AddAdmin = ({ isOpen, onClose, onUserPromoted }) => {
 
   const columns = [
     {
-      name: 'Image',
-      cell: row => (
+      name: "Image",
+      cell: (row) => (
         <div className="py-2">
           {row.image ? (
             <img
@@ -75,38 +86,38 @@ const AddAdmin = ({ isOpen, onClose, onUserPromoted }) => {
               alt={`${row.displayName}'s profile`}
               className="h-10 w-10 rounded-full object-cover"
               onError={(e) => {
-                e.target.src = '/default-avatar.png';
+                e.target.src = "/default-avatar.png";
                 e.target.onerror = null;
               }}
             />
           ) : (
             <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
               <span className="text-gray-500 text-sm">
-                {row.displayName?.charAt(0)?.toUpperCase() || 'U'}
+                {row.displayName?.charAt(0)?.toUpperCase() || "U"}
               </span>
             </div>
           )}
         </div>
       ),
-      width: '80px',
+      width: "80px",
     },
     {
-      name: 'Name',
-      selector: row => row.displayName,
+      name: "Name",
+      selector: (row) => row.displayName,
       sortable: true,
     },
     {
-      name: 'Email',
-      selector: row => row.email,
+      name: "Email",
+      selector: (row) => row.email,
       sortable: true,
     },
     {
-      name: 'Actions',
-      cell: row => (
+      name: "Actions",
+      cell: (row) => (
         <button
           onClick={() => handlePromoteToAdmin(row._id)}
           disabled={promotingUserId === row._id}
-          className="px-4 py-2 text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 transition-colors"
+          className="px-4 py-2 text-sm font-medium rounded-md text-white bg-primary  disabled:cursor-not-allowed"
           aria-label={`Promote ${row.displayName} to admin`}
           aria-live="polite"
         >
@@ -116,11 +127,11 @@ const AddAdmin = ({ isOpen, onClose, onUserPromoted }) => {
               Promoting...
             </span>
           ) : (
-            'Promote to Admin'
+            "Promote to Admin"
           )}
         </button>
       ),
-      width: '200px',
+      width: "200px",
     },
   ];
 
@@ -136,9 +147,9 @@ const AddAdmin = ({ isOpen, onClose, onUserPromoted }) => {
         >
           <FaTimes className="w-5 h-5" />
         </button>
-        
+
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Add New Admin</h2>
-        
+
         {isLoading ? (
           <div className="flex justify-center items-center py-4">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -155,29 +166,66 @@ const AddAdmin = ({ isOpen, onClose, onUserPromoted }) => {
             customStyles={{
               headRow: {
                 style: {
-                  backgroundColor: '#F9FAFB',
-                  borderBottom: '1px solid #E5E7EB',
+                  backgroundColor: "#F9FAFB",
+                  borderBottom: "1px solid #E5E7EB",
                 },
               },
               headCells: {
                 style: {
-                  fontSize: '0.875rem',
-                  fontWeight: '600',
-                  color: '#374151',
-                  padding: '12px 16px',
+                  fontSize: "0.875rem",
+                  fontWeight: "600",
+                  color: "#374151",
+                  padding: "12px 16px",
                 },
               },
               cells: {
                 style: {
-                  fontSize: '0.875rem',
-                  color: '#1F2937',
-                  padding: '12px 16px',
+                  fontSize: "0.875rem",
+                  color: "#1F2937",
+                  padding: "12px 16px",
                 },
               },
             }}
           />
         )}
       </div>
+
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50">
+          <div className="relative bg-white rounded-lg shadow-xl p-6 max-w-sm w-full mx-4">
+            <div className="flex flex-col items-center">
+              <div className="mb-4 rounded-full bg-green-100 p-3">
+                <svg
+                  className="w-6 h-6 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+              </div>
+              <h3 className="mb-4 text-lg font-medium text-gray-900">
+                Success!
+              </h3>
+              <p className="mb-6 text-center text-gray-500">
+                User has been promoted to admin successfully.
+              </p>
+              <button
+                onClick={() => setShowSuccessModal(false)}
+                className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
