@@ -38,17 +38,21 @@ const postEquipment = async (req, res) => {
     }
 };
 
-// Delete equipment by ID
 const deleteEquipment = async (req, res) => {
     try {
-        const equipment = await Equipment.findByIdAndDelete(req.params.equipment_id);
+        const equipment = await Equipment.findById(req.params.equipment_id);
         if (!equipment) {
             return res.status(404).json({ message: "Equipment not found" });
         }
-        res.status(200).json({ message: "Equipment deleted successfully" });
+
+        // Archive the equipment
+        equipment.isArchived = true;
+        await equipment.save();
+
+        res.status(200).json({ message: "Equipment archived successfully" });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Failed to delete equipment" });
+        res.status(500).json({ message: "Failed to archive equipment" });
     }
 };
 
