@@ -10,11 +10,13 @@ const EditDatesModal = ({
   initialReturnDate,
   borrowedDates,
   itemId,
+  version
 }) => {
   if (!isOpen) return null;
 
   const [borrowDate, setBorrowDate] = useState(null);
   const [returnDate, setReturnDate] = useState(null);
+  const [currentVersion, setCurrentVersion] = useState(version);
 
   useEffect(() => {
     if (initialBorrowDate) {
@@ -99,10 +101,22 @@ const EditDatesModal = ({
     return isHighlighted ? "highlight-red" : "";
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (borrowDate && returnDate) {
-      onConfirm(borrowDate.toISOString(), returnDate.toISOString());
+      try {
+        await onConfirm(
+          borrowDate.toISOString(), 
+          returnDate.toISOString(),
+          currentVersion
+        );
+        setCurrentVersion(prev => prev + 1);
+      } catch (error) {
+        if (error.status === 409) {
+          alert('This item was updated by someone else. Please refresh and try again.');
+          onClose();
+        }
+      }
     }
   };
 

@@ -54,6 +54,7 @@ const Inventory = () => {
       const dataWithId = response.data.map((item, index) => ({
         ...item,
         id: index + 1,
+        version: item.version || 0
       }));
       setEquipmentItems(dataWithId);
       setFilteredData(dataWithId);
@@ -156,7 +157,16 @@ const Inventory = () => {
       setDialogs({ ...dialogs, borrowed: true });
       return;
     }
-    setModalState({ isOpen: true, isEditMode: true, selectedItem: item });
+    const itemWithVersion = {
+      ...item,
+      version: item.version || 0
+    };
+    
+    setModalState({ 
+      isOpen: true, 
+      isEditMode: true, 
+      selectedItem: itemWithVersion
+    });
     setNewEquipment({
       name: item.name,
       description: item.description,
@@ -165,6 +175,7 @@ const Inventory = () => {
       serialNumber: item.serialNumber,
       model: item.model,
       availabilityStatus: item.availabilityStatus,
+      version: item.version || 0
     });
   };
 
@@ -217,42 +228,59 @@ const Inventory = () => {
 
       if (newEquipment.imageFile) {
         imageUrl = await handleImageUpload(newEquipment.imageFile);
-        if (!imageUrl) return; // Exit if image upload fails
+        if (!imageUrl) return;
       }
-
-      const equipmentData = { ...newEquipment, image: imageUrl };
 
       if (modalState.isEditMode) {
         // Edit existing equipment
+        const equipmentData = {
+          ...newEquipment,
+          image: imageUrl,
+          version: modalState.selectedItem.version
+        };
+
         const response = await axios.put(
           `http://localhost:8000/api/equipment/${modalState.selectedItem._id}`,
           equipmentData
         );
+
         if (response.status === 200) {
           setMessages({
             ...messages,
             success: "Equipment updated successfully!",
           });
+          setDialogs({ ...dialogs, success: true });
+          setModalState({ ...modalState, isOpen: false });
+          fetchEquipment(); // Refresh the data
         }
       } else {
         // Add new equipment
         const response = await axios.post(
           "http://localhost:8000/api/equipment",
-          equipmentData
+          { ...newEquipment, image: imageUrl }
         );
         if (response.status === 201) {
           setMessages({
             ...messages,
             success: "Equipment added successfully!",
           });
+          setDialogs({ ...dialogs, success: true });
+          setModalState({ ...modalState, isOpen: false });
+          fetchEquipment();
         }
       }
-      setDialogs({ ...dialogs, success: true });
-      setModalState({ ...modalState, isOpen: false });
-      fetchEquipment();
     } catch (error) {
-      setMessages({ ...messages, error: "Failed to save equipment." });
-      setDialogs({ ...dialogs, error: true });
+      if (error.response?.status === 409) {
+        setMessages({
+          ...messages,
+          error: "This equipment has been modified by another user. Please refresh and try again."
+        });
+        setDialogs({ ...dialogs, error: true });
+        fetchEquipment(); // Refresh the data
+      } else {
+        setMessages({ ...messages, error: "Failed to save equipment." });
+        setDialogs({ ...dialogs, error: true });
+      }
     } finally {
       setLoading(false);
       setIsSaving(false);

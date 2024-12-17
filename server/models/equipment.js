@@ -41,6 +41,10 @@ const equipmentSchema = new Schema({
     isArchived: {
         type: Boolean,
         default: false
+    },
+    version: {
+        type: Number,
+        default: 0
     }
 });
 

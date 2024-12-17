@@ -161,7 +161,7 @@ const UserManagement = () => {
         <div className="flex items-center justify-center py-2">
           <input
             type="checkbox"
-            checked={!row.inventory}
+            checked={row.inventory}
             onChange={() =>
               handleAccessToggle(row._id, "inventory", row.inventory)
             }
@@ -182,7 +182,7 @@ const UserManagement = () => {
         <div className="flex items-center justify-center py-2">
           <input
             type="checkbox"
-            checked={!row.transaction}
+            checked={row.transaction}
             onChange={() =>
               handleAccessToggle(row._id, "transaction", row.transaction)
             }
@@ -203,7 +203,7 @@ const UserManagement = () => {
         <div className="flex items-center justify-center py-2">
           <input
             type="checkbox"
-            checked={!row.borrowed}
+            checked={row.borrowed}
             onChange={() =>
               handleAccessToggle(row._id, "borrowed", row.borrowed)
             }
@@ -224,7 +224,7 @@ const UserManagement = () => {
         <div className="flex items-center justify-center py-2">
           <input
             type="checkbox"
-            checked={!row.report}
+            checked={row.report}
             onChange={() => handleAccessToggle(row._id, "report", row.report)}
             className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
             aria-label={`Toggle report access for ${row.name}`}
@@ -243,7 +243,7 @@ const UserManagement = () => {
         <div className="flex items-center justify-center py-2">
           <input
             type="checkbox"
-            checked={!row.userManagement}
+            checked={row.userManagement}
             onChange={() =>
               handleAccessToggle(row._id, "userManagement", row.userManagement)
             }
@@ -264,7 +264,7 @@ const UserManagement = () => {
         <div className="flex items-center justify-center py-2">
           <input
             type="checkbox"
-            checked={!row.addTransaction}
+            checked={row.addTransaction}
             onChange={() =>
               handleAccessToggle(row._id, "addTransaction", row.addTransaction)
             }
