@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Sidebar from "../components/Sidebar/Sidebar";
-import Navbar from "../components/Navbar/AdminNavbar";
 import DataTable from "react-data-table-component";
 import { FaUserPlus } from "react-icons/fa";
 import AddAdmin from "../components/AddAdmin";
@@ -9,7 +7,6 @@ import AddAdmin from "../components/AddAdmin";
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredData, setFilteredData] = useState([]);
   const [imageModal, setImageModal] = useState({
@@ -36,7 +33,6 @@ const UserManagement = () => {
   const fetchUsers = async () => {
     console.log("Fetching users...");
     try {
-      setIsLoading(true);
       setError(null);
       const response = await axios.get(
         "http://localhost:8000/api/auth/admins",
@@ -58,8 +54,6 @@ const UserManagement = () => {
         stack: err.stack,
       });
       setError(err.response?.data?.message || "Failed to fetch users");
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -330,145 +324,136 @@ const UserManagement = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <Navbar />
-        <div className="flex-1 p-8 overflow-y-auto">
-          <div className="max-w-full mx-auto">
-            <div className="text-left mt-8 mb-10">
-              <h1
-                className="text-5xl font-bold text-black dark:text-white relative inline-block
-                after:content-[''] after:block after:w-1/2 after:h-1 after:bg-primary
-                after:mt-2 after:rounded-full"
-              >
-                USER MANAGEMENT
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-4 text-lg">
-                Manage and track all users in the system
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow mb-6">
-              <div className="p-4 border-b border-gray-200">
-                <div className="flex items-center justify-between space-x-4">
-                  <div className="w-1/4">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="Search Users"
-                        value={searchQuery}
-                        onChange={handleSearchChange}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                      <div className="absolute left-3 top-2.5 text-gray-400">
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                          />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setShowAddAdminModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-primary"
-                    aria-label="Add new admin"
-                    tabIndex={0}
-                  >
-                    <FaUserPlus className="w-4 h-4" />
-                    <span>Add Admin</span>
-                  </button>
-                </div>
-              </div>
-
-              {error && (
-                <div className="p-4 mb-4 text-red-700 bg-red-100 rounded-lg">
-                  {error}
-                </div>
-              )}
-
-              {isLoading ? (
-                <div className="flex justify-center items-center h-64">
-                  <div className="loader"></div>
-                </div>
-              ) : (
-                <DataTable
-                  columns={columns}
-                  data={filteredData}
-                  pagination
-                  highlightOnHover
-                  pointerOnHover
-                  responsive
-                  customStyles={{
-                    headRow: {
-                      style: {
-                        backgroundColor: "#F9FAFB",
-                        borderBottom: "1px solid #E5E7EB",
-                      },
-                    },
-                    headCells: {
-                      style: {
-                        fontSize: "0.875rem",
-                        fontWeight: "600",
-                        color: "#374151",
-                        padding: "12px 16px",
-                      },
-                    },
-                    cells: {
-                      style: {
-                        fontSize: "0.875rem",
-                        color: "#1F2937",
-                        padding: "12px 16px",
-                      },
-                    },
-                  }}
-                />
-              )}
-            </div>
+    <div className="p-6">
+      {/* Header Section */}
+      <div className="mb-8">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1
+              className="text-4xl font-bold text-black dark:text-white relative inline-block
+              after:content-[''] after:block after:w-1/2 after:h-1 after:bg-primary
+              after:mt-2 after:rounded-full"
+            >
+              User Management
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-4 text-lg">
+              Manage and track all users in the system
+            </p>
           </div>
-
-          {/* Image Modal */}
-          {imageModal.isOpen && (
-            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center">
-              <div className="relative bg-white p-4 rounded-lg shadow-lg max-w-xs md:max-w-md">
-                <img
-                  src={imageModal.imageUrl}
-                  alt="User"
-                  className="w-full h-auto object-contain rounded"
-                />
-                <button
-                  onClick={() => setImageModal({ isOpen: false, imageUrl: "" })}
-                  className="absolute top-0 right-0 mt-2 mr-2 text-red-600 hover:text-red-800"
-                  aria-label="Close image modal"
-                >
-                  &times;
-                </button>
-              </div>
-            </div>
-          )}
-
-          <AddAdmin
-            isOpen={showAddAdminModal}
-            onClose={() => setShowAddAdminModal(false)}
-            onAdminAdded={fetchUsers}
-          />
-
-          <RemoveAdminModal
-            isOpen={removeAdminModal.isOpen}
-            onClose={() => setRemoveAdminModal({ isOpen: false, userId: null })}
-            onConfirm={confirmRemoveAdmin}
-          />
         </div>
       </div>
+
+      <div className="max-w-full mx-auto">
+        <div className="bg-white rounded-lg shadow mb-6">
+          <div className="flex items-center justify-between space-x-4 p-4">
+            <div className="w-1/4">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search Users"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <div className="absolute left-3 top-2.5 text-gray-400">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowAddAdminModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-primary"
+              aria-label="Add new admin"
+              tabIndex={0}
+            >
+              <FaUserPlus className="w-4 h-4" />
+              <span>Add Admin</span>
+            </button>
+          </div>
+        </div>
+
+        {error && (
+          <div className="p-4 mb-4 text-red-700 bg-red-100 rounded-lg">
+            {error}
+          </div>
+        )}
+
+        <DataTable
+          columns={columns}
+          data={filteredData}
+          pagination
+          highlightOnHover
+          pointerOnHover
+          responsive
+          customStyles={{
+            headRow: {
+              style: {
+                backgroundColor: "#F9FAFB",
+                borderBottom: "1px solid #E5E7EB",
+              },
+            },
+            headCells: {
+              style: {
+                fontSize: "0.875rem",
+                fontWeight: "600",
+                color: "#374151",
+                padding: "12px 16px",
+              },
+            },
+            cells: {
+              style: {
+                fontSize: "0.875rem",
+                color: "#1F2937",
+                padding: "12px 16px",
+              },
+            },
+          }}
+        />
+      </div>
+
+      {/* Image Modal */}
+      {imageModal.isOpen && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center">
+          <div className="relative bg-white p-4 rounded-lg shadow-lg max-w-xs md:max-w-md">
+            <img
+              src={imageModal.imageUrl}
+              alt="User"
+              className="w-full h-auto object-contain rounded"
+            />
+            <button
+              onClick={() => setImageModal({ isOpen: false, imageUrl: "" })}
+              className="absolute top-0 right-0 mt-2 mr-2 text-red-600 hover:text-red-800"
+              aria-label="Close image modal"
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+      )}
+
+      <AddAdmin
+        isOpen={showAddAdminModal}
+        onClose={() => setShowAddAdminModal(false)}
+        onAdminAdded={fetchUsers}
+      />
+
+      <RemoveAdminModal
+        isOpen={removeAdminModal.isOpen}
+        onClose={() => setRemoveAdminModal({ isOpen: false, userId: null })}
+        onConfirm={confirmRemoveAdmin}
+      />
     </div>
   );
 };

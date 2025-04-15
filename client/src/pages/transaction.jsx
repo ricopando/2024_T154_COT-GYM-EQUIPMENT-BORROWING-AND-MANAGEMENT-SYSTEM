@@ -2,9 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import DataTable from "react-data-table-component";
 import { toast } from "react-hot-toast";
-import Navbar from "../components/Navbar/AdminNavbar";
-import Sidebar from "../components/Sidebar/Sidebar";
-import LoadingModal from "../components/modal/loadingModal";
 import DeleteModal from "../components/modal/deleteModal";
 import EquipmentDetails from "../components/Transaction/EquipmentDetails";
 import ConfirmDeclineDialog from "../components/Transaction/ConfirmDeclineDialog";
@@ -14,55 +11,45 @@ import ApprovedModal from "../components/modal/approvedModal";
 const Transaction = () => {
   const [borrowedItems, setBorrowedItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [deleteLoading, setDeleteLoading] = useState(false);
   const [equipmentDetails, setEquipmentDetails] = useState(null);
   const [equipmentModalOpen, setEquipmentModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [declineTransactionId, setDeclineTransactionId] = useState(null);
   const [confirmDeclineDialogOpen, setConfirmDeclineDialogOpen] =
     useState(false);
-
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showApprovedModal, setShowApprovedModal] = useState(false);
   const [confirmApprovedDialogOpen, setConfirmApprovedDialogOpen] =
     useState(false);
   const [transactionToApprove, setTransactionToApprove] = useState(null);
-  const [approveLoading, setApproveLoading] = useState(false);
 
-  // Define fetchAllBorrowedItems outside of useEffect
   const fetchAllBorrowedItems = async () => {
     try {
+      setLoading(true);
       const response = await axios.get(
         "http://localhost:8000/api/borrow-items",
         {
           withCredentials: true,
         }
       );
-      console.log("Fetched data:", response.data);
-      const dataWithId = response.data.map((item, index) => ({
-        ...item,
-        id: index + 1,
-      }));
 
-      // Filter transactions to only include those with a status of "Pending"
-      const filteredData = dataWithId.filter((item) => {
-        if (item.status !== "Pending") {
-          return false; // Exclude non-pending transactions
-        }
-        if (!item.equipment || item.equipment.length === 0) {
-          if (item._id) {
-            // Ensure item._id is defined
-            handleDeleteTransaction(item._id); // Automatically delete transaction
-          }
-          return false; // Exclude from the list
-        }
-        return true;
-      });
+      console.log("Fetched transactions:", response.data);
 
-      setBorrowedItems(filteredData); // Update state with filtered data
+      // Filter only pending transactions and ensure proper data structure
+      const pendingTransactions = response.data
+        .filter((item) => item.status === "Pending")
+        .map((item) => ({
+          ...item,
+          _id: item.item || item._id, // Use item as primary ID
+          items: Array.isArray(item.equipment) ? item.equipment : [],
+          user: item.user || { name: "N/A", email: "N/A" },
+        }));
+
+      console.log("Processed transactions:", pendingTransactions);
+      setBorrowedItems(pendingTransactions);
     } catch (error) {
-      console.error("Failed to fetch all borrowed items:", error);
-      toast.error("Failed to load borrowed items");
+      console.error("Error fetching borrowed items:", error);
+      toast.error("Failed to load transactions");
     } finally {
       setLoading(false);
     }
@@ -75,18 +62,18 @@ const Transaction = () => {
   const columns = [
     {
       name: "Transaction ID",
-      selector: (row) => row.item,
+      selector: (row) => row._id || row.item,
       sortable: true,
       width: "200px",
     },
     {
       name: "User",
-      selector: (row) => row.user.name,
+      selector: (row) => row.user?.name || "N/A",
       sortable: true,
     },
     {
       name: "Email",
-      selector: (row) => row.user.email,
+      selector: (row) => row.user?.email || "N/A",
       sortable: true,
       width: "200px",
     },
@@ -104,44 +91,92 @@ const Transaction = () => {
       name: "Status",
       selector: (row) => row.status,
       sortable: true,
+      cell: (row) => (
+        <span
+          className={`px-3 py-1 rounded-full text-xs ${
+            row.status === "Approved"
+              ? "bg-green-100 text-green-800"
+              : row.status === "Returned"
+              ? "bg-gray-100 text-gray-800"
+              : "bg-yellow-100 text-yellow-800"
+          }`}
+        >
+          {row.status}
+        </span>
+      ),
     },
     {
       name: "Equipment Info",
-      cell: (row) => (
-        <button
-          className="px-4 py-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
-          onClick={() => openEquipmentModal(row.equipment, row.item)}
-          aria-label={`View equipment details for transaction ${row.item}`}
-        >
-          View
-        </button>
-      ),
+      cell: (row) => {
+        console.log("Row data:", row);
+        const transactionId = row.item || row._id;
+        const equipmentCount = Array.isArray(row.equipment)
+          ? row.equipment.length
+          : 0;
+
+        return (
+          <button
+            className="px-4 py-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
+            onClick={() => {
+              console.log("Clicked row:", row);
+              if (!transactionId) {
+                toast.error("Invalid transaction data");
+                return;
+              }
+              openEquipmentModal(row.equipment || [], transactionId);
+            }}
+            aria-label={`View equipment details for transaction ${
+              transactionId || "unknown"
+            }`}
+          >
+            View Details ({equipmentCount})
+          </button>
+        );
+      },
       ignoreRowClick: true,
     },
     {
       name: "Actions",
       cell: (row) => {
-        console.log("Row data:", row);
-        return (
-          <div className="flex justify-center">
-            <button
-              onClick={() => handleApproveTransaction(row.item)}
-              className="bg-primary text-white py-1 px-1 rounded hover:bg-primary-dark mr-2"
-            >
-              Approve
-            </button>
-            <button
-              onClick={() => handleDeclineTransaction(row.item)}
-              className="bg-gray-500 text-white py-1 px-1 rounded hover:bg-gray-600"
-            >
-              Decline
-            </button>
-          </div>
-        );
+        if (row.status === "Pending") {
+          return (
+            <div className="flex justify-center space-x-2">
+              <button
+                onClick={() => handleApproveTransaction(row._id || row.item)}
+                className="bg-primary text-white py-1 px-3 rounded hover:bg-primary-dark"
+              >
+                Approve
+              </button>
+              <button
+                onClick={() => handleDeclineTransaction(row._id || row.item)}
+                className="bg-gray-500 text-white py-1 px-3 rounded hover:bg-gray-600"
+              >
+                Decline
+              </button>
+            </div>
+          );
+        }
+        return null;
       },
       ignoreRowClick: true,
     },
   ];
+
+  // Filtered data based on search query with null checks
+  const filteredItems = borrowedItems.filter((item) => {
+    if (!searchQuery.trim()) return true;
+
+    const search = searchQuery.toLowerCase();
+    const userName = item.user?.name?.toLowerCase() || "";
+    const userEmail = item.user?.email?.toLowerCase() || "";
+    const transactionId = (item._id || item.item || "").toLowerCase();
+
+    return (
+      userName.includes(search) ||
+      userEmail.includes(search) ||
+      transactionId.includes(search)
+    );
+  });
 
   // Helper Functions
   const handleDeleteTransaction = async (itemId) => {
@@ -151,7 +186,6 @@ const Transaction = () => {
       return;
     }
 
-    setDeleteLoading(true);
     try {
       const response = await axios.delete(
         `http://localhost:8000/api/borrow-items/${itemId}`,
@@ -172,8 +206,6 @@ const Transaction = () => {
     } catch (error) {
       console.error("Failed to delete transaction:", error);
       toast.error("Failed to delete transaction.");
-    } finally {
-      setDeleteLoading(false);
     }
   };
 
@@ -185,7 +217,6 @@ const Transaction = () => {
   const confirmApprovedTransaction = async () => {
     if (!transactionToApprove) return;
     setConfirmApprovedDialogOpen(false);
-    setApproveLoading(true); // Start loading
     setShowApprovedModal(true); // Ensure modal is shown
     try {
       // Update the transaction status to 'Approved'
@@ -227,7 +258,6 @@ const Transaction = () => {
     } finally {
       setTransactionToApprove(null);
       setConfirmApprovedDialogOpen(false);
-      setApproveLoading(false); // End loading
       setShowApprovedModal(false); // Ensure modal is hidden
     }
   };
@@ -245,7 +275,6 @@ const Transaction = () => {
   const confirmDeclineTransaction = async () => {
     if (declineTransactionId) {
       setConfirmDeclineDialogOpen(false);
-      setDeleteLoading(true);
       setShowDeleteModal(true);
       try {
         await handleDeleteTransaction(declineTransactionId);
@@ -255,7 +284,6 @@ const Transaction = () => {
         console.error("Failed to decline transaction:", error);
         toast.error("Failed to decline transaction.");
       } finally {
-        setDeleteLoading(false);
         setShowDeleteModal(false);
       }
     }
@@ -267,43 +295,94 @@ const Transaction = () => {
   };
 
   const openEquipmentModal = async (equipment, transactionId) => {
-    if (!equipment || equipment.length === 0) {
-      setEquipmentModalOpen(false);
-      await handleDeleteTransaction(transactionId); // Await the deletion
-      return;
-    }
-    const equipmentWithTransactionId = equipment.map((equip) => ({
-      ...equip,
-      transactionId,
-    }));
-    setEquipmentDetails(equipmentWithTransactionId);
-    setEquipmentModalOpen(true);
-  };
+    try {
+      console.log("Opening modal for transaction ID:", transactionId);
+      console.log("Equipment data:", equipment);
 
-  // Ensure useEffect is correctly set up to update equipment details
-  useEffect(() => {
-    if (equipmentModalOpen) {
-      const currentTransaction = borrowedItems.find(
-        (item) => item.id === equipmentDetails[0]?.transactionId
-      );
-      if (currentTransaction) {
-        setEquipmentDetails(currentTransaction.equipment);
+      if (!transactionId) {
+        console.error("Transaction ID is undefined or null");
+        toast.error("Invalid transaction ID");
+        return;
       }
+
+      // Find the transaction in the current state first
+      const transaction = borrowedItems.find(
+        (item) => item.item === transactionId || item._id === transactionId
+      );
+
+      if (transaction && transaction.equipment) {
+        // If we have the equipment data in the current state, use it
+        const equipmentWithDetails = transaction.equipment
+          .map((item) => {
+            // Ensure we have a valid item structure
+            if (!item) return null;
+
+            return {
+              id: item._id || item.id,
+              transactionId,
+              status: item.status || "Pending",
+              name: item.name || item.equipment?.name || "N/A",
+              serialNumber:
+                item.serialNumber || item.equipment?.serialNumber || "N/A",
+              category: item.category || item.equipment?.category || "N/A",
+              image: item.image || item.equipment?.image || null,
+              borrowDate: item.borrowDate || new Date(),
+              returnDate: item.returnDate || new Date(),
+            };
+          })
+          .filter(Boolean); // Remove any null items
+
+        console.log("Processed equipment data:", equipmentWithDetails);
+        setEquipmentDetails(equipmentWithDetails);
+        setEquipmentModalOpen(true);
+      } else {
+        // If not in current state, fetch from API
+        const response = await axios.get(
+          `http://localhost:8000/api/borrow-items/${transactionId}`,
+          {
+            withCredentials: true,
+          }
+        );
+
+        if (!response.data || !response.data.equipment) {
+          toast.error("No equipment details found");
+          return;
+        }
+
+        const equipmentWithDetails = response.data.equipment
+          .map((item) => {
+            // Ensure we have a valid item structure
+            if (!item) return null;
+
+            return {
+              id: item._id || item.id,
+              transactionId,
+              status: item.status || "Pending",
+              name: item.name || item.equipment?.name || "N/A",
+              serialNumber:
+                item.serialNumber || item.equipment?.serialNumber || "N/A",
+              category: item.category || item.equipment?.category || "N/A",
+              image: item.image || item.equipment?.image || null,
+              borrowDate: item.borrowDate || new Date(),
+              returnDate: item.returnDate || new Date(),
+            };
+          })
+          .filter(Boolean); // Remove any null items
+
+        console.log("Processed equipment data from API:", equipmentWithDetails);
+        setEquipmentDetails(equipmentWithDetails);
+        setEquipmentModalOpen(true);
+      }
+    } catch (error) {
+      console.error("Error details:", error);
+      toast.error("Failed to load equipment details. Please try again.");
     }
-  }, [borrowedItems, equipmentModalOpen, equipmentDetails]);
+  };
 
   const closeEquipmentModal = () => {
     setEquipmentDetails(null);
     setEquipmentModalOpen(false);
   };
-
-  // Filtered data based on search query
-  const filteredItems = borrowedItems.filter(
-    (item) =>
-      item.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.item.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   const updateEquipmentStatus = (borrowedItemId, itemId, newStatus) => {
     setBorrowedItems((prevItems) =>
@@ -342,146 +421,152 @@ const Transaction = () => {
 
   // Main Component Return
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <Navbar />
-        <div className="flex-1 p-8 overflow-y-auto">
-          <div className="max-w-full mx-auto">
-            <div className="mb-8">
-              <h1
-                className="text-5xl font-bold text-black dark:text-white relative inline-block
-                after:content-[''] after:block after:w-1/2 after:h-1 after:bg-primary
-                after:mt-2 after:rounded-full"
-              >
-                TRANSACTION
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-4 text-lg">
-                Manage and track all pending transactions in your account
-              </p>
-            </div>
+    <div className="p-8">
+      <div className="max-w-full mx-auto">
+        <div className="mb-8">
+          <h1
+            className="text-4xl font-bold text-black dark:text-white relative inline-block
+            after:content-[''] after:block after:w-1/2 after:h-1 after:bg-primary
+            after:mt-2 after:rounded-full"
+          >
+            Transaction
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-4 text-lg">
+            Manage and track all pending transactions in your account
+          </p>
+        </div>
 
-            <div className="bg-white rounded-lg shadow mb-6">
-              <div className="p-4 border-b border-gray-200">
-                <div className="flex items-center justify-end space-x-4">
-                  <div className="w-1/8">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="Search "
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        <div className="bg-white rounded-lg shadow mb-6">
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                {loading
+                  ? "Loading transactions..."
+                  : `${filteredItems.length} pending transaction${
+                      filteredItems.length !== 1 ? "s" : ""
+                    }`}
+              </div>
+              <div className="w-64">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search transactions..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    disabled={loading}
+                  />
+                  <div className="absolute left-3 top-2.5 text-gray-400">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                       />
-                      <div className="absolute left-3 top-2.5 text-gray-400">
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                          />
-                        </svg>
-                      </div>
-                    </div>
+                    </svg>
                   </div>
                 </div>
               </div>
-
-              {loading ? (
-                <div className="flex justify-center items-center h-64">
-                  <div className="loader"></div>
-                </div>
-              ) : (
-                <DataTable
-                  columns={columns}
-                  data={filteredItems}
-                  pagination
-                  highlightOnHover
-                  pointerOnHover
-                  responsive
-                  customStyles={{
-                    headRow: {
-                      style: {
-                        backgroundColor: "#F9FAFB",
-                        borderBottom: "1px solid #E5E7EB",
-                      },
-                    },
-                    headCells: {
-                      style: {
-                        fontSize: "0.875rem",
-                        fontWeight: "600",
-                        color: "#374151",
-                        padding: "12px 16px",
-                      },
-                    },
-                    cells: {
-                      style: {
-                        fontSize: "0.875rem",
-                        color: "#1F2937",
-                        padding: "12px 16px",
-                      },
-                    },
-                  }}
-                />
-              )}
             </div>
           </div>
 
-          {/* Keep existing modals */}
-          {loading && <LoadingModal />}
-          {deleteLoading && showDeleteModal && <DeleteModal />}
-          {approveLoading && showApprovedModal && <ApprovedModal />}
-
-          <EquipmentDetails
-            isOpen={equipmentModalOpen}
-            onClose={closeEquipmentModal}
-            equipmentDetails={equipmentDetails}
-            setEquipmentDetails={setEquipmentDetails}
-            setBorrowedItems={setBorrowedItems}
-            setDeleteLoading={setDeleteLoading}
-            setShowDeleteModal={setShowDeleteModal}
-            toast={toast}
-            fetchAllBorrowedItems={fetchAllBorrowedItems}
-            updateEquipmentStatus={updateEquipmentStatus}
-          />
-          <ConfirmDeclineDialog
-            isOpen={confirmDeclineDialogOpen}
-            onClose={closeConfirmDeclineDialog}
-            onConfirm={confirmDeclineTransaction}
-          />
-          <ConfirmApproved
-            isOpen={confirmApprovedDialogOpen}
-            onClose={closeConfirmApprovedDialog}
-            onConfirm={confirmApprovedTransaction}
-          />
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : filteredItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-64">
+              <svg
+                className="w-16 h-16 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              <p className="mt-4 text-lg text-gray-600">
+                No pending transactions found
+              </p>
+              {searchQuery && (
+                <p className="mt-2 text-sm text-gray-500">
+                  Try adjusting your search query
+                </p>
+              )}
+            </div>
+          ) : (
+            <DataTable
+              columns={columns}
+              data={filteredItems}
+              pagination
+              highlightOnHover
+              pointerOnHover
+              responsive
+              progressPending={loading}
+              customStyles={{
+                headRow: {
+                  style: {
+                    backgroundColor: "#F9FAFB",
+                    borderBottom: "1px solid #E5E7EB",
+                  },
+                },
+                headCells: {
+                  style: {
+                    fontSize: "0.875rem",
+                    fontWeight: "600",
+                    color: "#374151",
+                    padding: "12px 16px",
+                  },
+                },
+                cells: {
+                  style: {
+                    fontSize: "0.875rem",
+                    color: "#1F2937",
+                    padding: "12px 16px",
+                  },
+                },
+              }}
+            />
+          )}
         </div>
       </div>
 
-      <style jsx>{`
-        .loader {
-          border: 4px solid #f3f3f3;
-          border-top: 4px solid #3498db;
-          border-radius: 50%;
-          width: 24px;
-          height: 24px;
-          animation: spin 2s linear infinite;
-        }
+      {/* Keep existing modals */}
+      {showDeleteModal && <DeleteModal />}
+      {showApprovedModal && <ApprovedModal />}
 
-        @keyframes spin {
-          0% {
-            transform: rotate(0deg);
-          }
-          100% {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
+      <EquipmentDetails
+        isOpen={equipmentModalOpen}
+        onClose={closeEquipmentModal}
+        equipmentDetails={equipmentDetails}
+        setEquipmentDetails={setEquipmentDetails}
+        setBorrowedItems={setBorrowedItems}
+        setShowDeleteModal={setShowDeleteModal}
+        toast={toast}
+        fetchAllBorrowedItems={fetchAllBorrowedItems}
+        updateEquipmentStatus={updateEquipmentStatus}
+        showApprovedModal={false}
+      />
+      <ConfirmDeclineDialog
+        isOpen={confirmDeclineDialogOpen}
+        onClose={closeConfirmDeclineDialog}
+        onConfirm={confirmDeclineTransaction}
+      />
+      <ConfirmApproved
+        isOpen={confirmApprovedDialogOpen}
+        onClose={closeConfirmApprovedDialog}
+        onConfirm={confirmApprovedTransaction}
+      />
     </div>
   );
 };

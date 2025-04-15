@@ -1,29 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import SuccessChangePass from './SuccessChangePass';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import SuccessChangePass from "./SuccessChangePass";
 
 const AdminNavbar = () => {
   const navigate = useNavigate();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [user, setUser] = useState(null);
-  
+
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
-  const [newPassword, setNewPassword] = useState('');
-  const [verifyPassword, setVerifyPassword] = useState('');
+  const [newPassword, setNewPassword] = useState("");
+  const [verifyPassword, setVerifyPassword] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSuccessMessageOpen, setIsSuccessMessageOpen] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/auth/status', { withCredentials: true });
+        const response = await axios.get(
+          "http://localhost:8000/api/auth/status",
+          { withCredentials: true }
+        );
         if (response.data.user) {
           setUser(response.data.user);
         }
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error("Error fetching user data:", error);
       }
     };
     fetchUser();
@@ -35,12 +38,14 @@ const AdminNavbar = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.get('http://localhost:8000/api/auth/logout', { withCredentials: true });
+      await axios.get("http://localhost:8000/api/auth/logout", {
+        withCredentials: true,
+      });
       setUser(null);
-      navigate('/');
+      navigate("/");
     } catch (error) {
-      console.error('Error during logout:', error);
-      alert('Failed to log out. Please try again.');
+      console.error("Error during logout:", error);
+      alert("Failed to log out. Please try again.");
     }
   };
 
@@ -55,23 +60,23 @@ const AdminNavbar = () => {
   const handleChangePassword = async (e) => {
     e.preventDefault();
     if (newPassword !== verifyPassword) {
-      alert('Passwords do not match');
+      alert("Passwords do not match");
       return;
     }
     try {
       await axios.post(
-        'http://localhost:8000/api/auth/change-password',
+        "http://localhost:8000/api/auth/change-password",
         { newPassword },
         { withCredentials: true }
       );
-      setSuccessMessage('Password changed successfully');
+      setSuccessMessage("Password changed successfully");
       setIsSuccessMessageOpen(true);
-      setNewPassword('');
-      setVerifyPassword('');
+      setNewPassword("");
+      setVerifyPassword("");
       setIsChangePasswordOpen(false);
     } catch (error) {
-      console.error('Error changing password:', error);
-      alert('Error changing password. Please try again later.');
+      console.error("Error changing password:", error);
+      alert("Error changing password. Please try again later.");
     }
   };
 
@@ -97,8 +102,6 @@ const AdminNavbar = () => {
             ☰
           </button>
 
-         
-
           {/* user image and dropdown */}
           {user && user.image && (
             <div className="relative ">
@@ -120,13 +123,13 @@ const AdminNavbar = () => {
                   <hr className="my-2" />
                   <button
                     onClick={handleOpenChangePassword}
-                    className="block w-full text-left px-4 py-2 text-black hover:bg-gray-100"
+                    className="block w-full text-left px-4 py-2 text-black hover:bg-gray-100 text-sm"
                   >
                     Change Password
                   </button>
                   <button
                     onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-black hover:bg-gray-100"
+                    className="block w-full text-left px-4 py-2 text-black hover:bg-gray-100 text-sm"
                   >
                     Logout
                   </button>
@@ -160,17 +163,17 @@ const AdminNavbar = () => {
                 onChange={(e) => setVerifyPassword(e.target.value)}
                 className="block w-full mb-4 p-2 border rounded"
               />
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-center gap-2">
                 <button
                   type="button"
                   onClick={handleCloseChangePassword}
-                  className="px-4 py-2 bg-gray-300 rounded"
+                  className="px-4 py-2 bg-gray-300 rounded text-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-primary text-white rounded"
+                  className="px-4 py-2 bg-primary text-white rounded text-sm"
                 >
                   Change
                 </button>

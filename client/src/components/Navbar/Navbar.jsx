@@ -161,13 +161,13 @@ const Navbar = () => {
                   <hr className="my-2" />
                   <button
                     onClick={handleOpenChangePassword}
-                    className="block w-full text-left px-4 py-2 text-black hover:bg-gray-100"
+                    className="block w-full text-left px-4 py-2 text-black hover:bg-gray-100 text-sm"
                   >
                     Change Password
                   </button>
                   <button
                     onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-black hover:bg-gray-100"
+                    className="block w-full text-left px-4 py-2 text-black hover:bg-gray-100 text-sm"
                   >
                     Logout
                   </button>
@@ -228,17 +228,17 @@ const Navbar = () => {
                 onChange={(e) => setVerifyPassword(e.target.value)}
                 className="block w-full mb-4 p-2 border rounded"
               />
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-center gap-2">
                 <button
                   type="button"
                   onClick={handleCloseChangePassword}
-                  className="px-4 py-2 bg-gray-300 rounded"
+                  className="px-4 py-2 bg-gray-300 rounded text-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-primary text-white rounded"
+                  className="px-4 py-2 bg-primary text-white rounded text-sm"
                 >
                   Change
                 </button>

@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Sidebar from "../components/Sidebar/Sidebar";
-import Navbar from "../components/Navbar/AdminNavbar";
-import LoadingModal from "../components/modal/loadingModal";
 import DataTable from "react-data-table-component";
 import EquipmentDetails from "../components/Borrowed/EquipmentDetails";
 import { toast } from "react-hot-toast";
@@ -12,14 +9,12 @@ import Form from "../components/Form";
 
 const Borrowed = () => {
   const [borrowedItems, setBorrowedItems] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [equipmentDetails, setEquipmentDetails] = useState(null);
   const [equipmentModalOpen, setEquipmentModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showApprovedModal, setShowApprovedModal] = useState(false);
   const [confirmReturnDialogOpen, setConfirmReturnDialogOpen] = useState(false);
   const [transactionToReturn, setTransactionToReturn] = useState(null);
-  const [approveLoading, setApproveLoading] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedUserDetails, setSelectedUserDetails] = useState(null);
   const [selectedBorrowedItems, setSelectedBorrowedItems] = useState(null);
@@ -38,24 +33,15 @@ const Borrowed = () => {
         id: index + 1,
       }));
 
+      // Filter only approved and returned items
       const filteredData = dataWithId.filter((item) => {
-        if (item.status !== "Approved" && item.status !== "Returned") {
-          return false;
-        }
-        if (!item.equipment || item.equipment.length === 0) {
-          if (item._id) {
-          }
-          return false;
-        }
-        return true;
+        return item.status === "Approved" || item.status === "Returned";
       });
 
       setBorrowedItems(filteredData);
     } catch (error) {
       console.error("Failed to fetch all borrowed items:", error);
       toast.error("Failed to load borrowed items");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -83,7 +69,6 @@ const Borrowed = () => {
 
     try {
       setConfirmReturnDialogOpen(false);
-      setApproveLoading(true);
       setShowApprovedModal(true);
 
       const response = await axios.patch(
@@ -99,10 +84,9 @@ const Borrowed = () => {
     } catch (error) {
       console.error("Return transaction failed:", error);
       toast.error(error.response?.data?.message || "Failed to return items");
-    } finally {
+
       setTransactionToReturn(null);
       setConfirmReturnDialogOpen(false);
-      setApproveLoading(false);
       setShowApprovedModal(false);
     }
   };
@@ -137,13 +121,21 @@ const Borrowed = () => {
     setEquipmentModalOpen(false);
   };
 
-  // Filtered data based on search query
-  const filteredItems = borrowedItems.filter(
-    (item) =>
-      item.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.item.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filtered data based on search query with null checks
+  const filteredItems = borrowedItems.filter((item) => {
+    if (!item || !item.user) return false;
+
+    const searchLower = searchQuery.toLowerCase();
+    const userName = item.user.name || "";
+    const userEmail = item.user.email || "";
+    const itemName = item.items?.[0]?.equipment?.name || "";
+
+    return (
+      userName.toLowerCase().includes(searchLower) ||
+      userEmail.toLowerCase().includes(searchLower) ||
+      itemName.toLowerCase().includes(searchLower)
+    );
+  });
 
   const updateEquipmentStatus = (borrowedItemId, itemId, newStatus) => {
     setBorrowedItems((prevItems) =>
@@ -288,149 +280,116 @@ const Borrowed = () => {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <Navbar />
-        <div className="flex-1 p-8 overflow-y-auto">
-          <div className="max-w-full mx-auto">
-            <div className="mb-8">
-              <h1
-                className="text-5xl font-bold text-black dark:text-white relative inline-block
-                after:content-[''] after:block after:w-1/2 after:h-1 after:bg-primary
-                after:mt-2 after:rounded-full"
-              >
-                BORROWED EQUIPMENT
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-4 text-lg">
-                Manage and track all borrowed equipment transactions
-              </p>
-            </div>
+    <div className="p-8">
+      <div className="max-w-full mx-auto">
+        <div className="mb-8">
+          <h1
+            className="text-4xl font-bold text-black dark:text-white relative inline-block
+            after:content-[''] after:block after:w-1/2 after:h-1 after:bg-primary
+            after:mt-2 after:rounded-full"
+          >
+            Borrowed Equipment
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-4 text-lg">
+            Manage and track all borrowed equipment transactions
+          </p>
+        </div>
 
-            <div className="bg-white rounded-lg shadow mb-6">
-              <div className="p-4 border-b border-gray-200">
-                <div className="flex items-center justify-end space-x-4">
-                  <div className="w-1/8">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="Search "
-                        value={searchQuery}
-                        onChange={handleSearchChange}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        <div className="bg-white rounded-lg shadow mb-6">
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center justify-end space-x-4">
+              <div className="w-1/8">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search "
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <div className="absolute left-3 top-2.5 text-gray-400">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                       />
-                      <div className="absolute left-3 top-2.5 text-gray-400">
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                          />
-                        </svg>
-                      </div>
-                    </div>
+                    </svg>
                   </div>
                 </div>
               </div>
-
-              {loading ? (
-                <div className="flex justify-center items-center h-64">
-                  <div className="loader"></div>
-                </div>
-              ) : (
-                <DataTable
-                  columns={columns}
-                  data={filteredItems}
-                  pagination
-                  highlightOnHover
-                  pointerOnHover
-                  responsive
-                  customStyles={{
-                    headRow: {
-                      style: {
-                        backgroundColor: "#F9FAFB",
-                        borderBottom: "1px solid #E5E7EB",
-                      },
-                    },
-                    headCells: {
-                      style: {
-                        fontSize: "0.875rem",
-                        fontWeight: "600",
-                        color: "#374151",
-                        padding: "12px 16px",
-                      },
-                    },
-                    cells: {
-                      style: {
-                        fontSize: "0.875rem",
-                        color: "#1F2937",
-                        padding: "12px 16px",
-                      },
-                    },
-                  }}
-                />
-              )}
             </div>
           </div>
 
-          {loading && <LoadingModal />}
-          {approveLoading && showApprovedModal && <ApprovedModal />}
-          <EquipmentDetails
-            isOpen={equipmentModalOpen}
-            onClose={closeEquipmentModal}
-            equipmentDetails={equipmentDetails}
-            setEquipmentDetails={setEquipmentDetails}
-            setBorrowedItems={setBorrowedItems}
-            toast={toast}
-            fetchAllBorrowedItems={fetchAllBorrowedItems}
-            updateEquipmentStatus={updateEquipmentStatus}
+          <DataTable
+            columns={columns}
+            data={filteredItems}
+            pagination
+            highlightOnHover
+            pointerOnHover
+            responsive
+            customStyles={{
+              headRow: {
+                style: {
+                  backgroundColor: "#F9FAFB",
+                  borderBottom: "1px solid #E5E7EB",
+                },
+              },
+              headCells: {
+                style: {
+                  fontSize: "0.875rem",
+                  fontWeight: "600",
+                  color: "#374151",
+                  padding: "12px 16px",
+                },
+              },
+              cells: {
+                style: {
+                  fontSize: "0.875rem",
+                  color: "#1F2937",
+                  padding: "12px 16px",
+                },
+              },
+            }}
           />
-          <ConfirmReturn
-            isOpen={confirmReturnDialogOpen}
-            onClose={closeConfirmReturnDialog}
-            onConfirm={confirmReturnTransaction}
-          />
-          {isFormOpen && (
-            <Form
-              userDetails={selectedUserDetails}
-              borrowedItems={selectedBorrowedItems}
-              onClose={() => {
-                setIsFormOpen(false);
-                setSelectedUserDetails(null);
-                setSelectedBorrowedItems(null);
-              }}
-            />
-          )}
         </div>
       </div>
+
+      {showApprovedModal && <ApprovedModal />}
+      <EquipmentDetails
+        isOpen={equipmentModalOpen}
+        onClose={closeEquipmentModal}
+        equipmentDetails={equipmentDetails}
+        setEquipmentDetails={setEquipmentDetails}
+        setBorrowedItems={setBorrowedItems}
+        toast={toast}
+        fetchAllBorrowedItems={fetchAllBorrowedItems}
+        updateEquipmentStatus={updateEquipmentStatus}
+      />
+      <ConfirmReturn
+        isOpen={confirmReturnDialogOpen}
+        onClose={closeConfirmReturnDialog}
+        onConfirm={confirmReturnTransaction}
+      />
+      {isFormOpen && (
+        <Form
+          userDetails={selectedUserDetails}
+          borrowedItems={selectedBorrowedItems}
+          onClose={() => {
+            setIsFormOpen(false);
+            setSelectedUserDetails(null);
+            setSelectedBorrowedItems(null);
+          }}
+        />
+      )}
     </div>
   );
 };
-
-<style jsx>{`
-  .loader {
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    animation: spin 2s linear infinite;
-  }
-
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-`}</style>;
 
 export default Borrowed;

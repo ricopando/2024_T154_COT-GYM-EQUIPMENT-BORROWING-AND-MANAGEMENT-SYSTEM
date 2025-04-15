@@ -42,22 +42,23 @@ const Borrow = () => {
 
     const fetchBorrowedItemsByUser = async () => {
       try {
+        console.log("Fetching borrowed items...");
         const response = await axios.get(
-          "http://localhost:8000/api/borrow-items/user/actual-user-id",
+          "http://localhost:8000/api/borrow-items/user",
           {
             withCredentials: true,
           }
         );
-        if (isMounted) {
-          const filteredItems = response.data.filter(
-            (item) => item.items && item.items.length > 0
-          );
-          setBorrowedItems(filteredItems);
+
+        console.log("API Response:", response.data);
+
+        if (isMounted && response.data) {
+          setBorrowedItems(response.data);
+          setLoading(false);
         }
       } catch (error) {
-        console.error("Failed to fetch borrowed items for user:", error);
-        toast.error("Failed to load borrowed items for user");
-      } finally {
+        console.error("Error fetching borrowed items:", error);
+        toast.error("Failed to load borrowed items");
         if (isMounted) {
           setLoading(false);
         }
@@ -93,7 +94,7 @@ const Borrow = () => {
 
       if (response.status === 200) {
         setBorrowedItems((prevItems) =>
-          prevItems.filter((item) => item._id !== itemId)
+          prevItems.filter((item) => item.item !== itemId)
         );
         toast.success("Transaction successfully deleted.");
       } else {
@@ -121,38 +122,30 @@ const Borrow = () => {
         setBorrowedItems((prevItems) =>
           prevItems
             .map((item) => {
-              if (item._id === borrowedItemId) {
-                const updatedItems = item.items.filter(
-                  (equipmentItem) => equipmentItem._id !== itemId
+              if (item.item === borrowedItemId) {
+                const updatedItems = item.equipment.filter(
+                  (equipmentItem) => equipmentItem.id !== itemId
                 );
                 if (updatedItems.length === 0) {
                   handleDeleteTransaction(borrowedItemId);
                   return null;
                 }
-                return { ...item, items: updatedItems };
+                return { ...item, equipment: updatedItems };
               }
               return item;
             })
             .filter(Boolean)
         );
 
-        if (equipmentDetails && equipmentDetails._id === borrowedItemId) {
+        if (equipmentDetails && equipmentDetails.item === borrowedItemId) {
           const updatedEquipmentItems = equipmentDetails.items.filter(
-            (equipmentItem) => equipmentItem._id !== itemId
+            (equipmentItem) => equipmentItem.id !== itemId
           );
           setEquipmentDetails({
             ...equipmentDetails,
             items: updatedEquipmentItems,
           });
         }
-
-        setEquipmentItems((prevItems) =>
-          prevItems.map((equipmentItem) =>
-            equipmentItem._id === itemId
-              ? { ...equipmentItem, availabilityStatus: "Available" }
-              : equipmentItem
-          )
-        );
 
         toast.success("Item successfully deleted.");
       } else {
@@ -218,12 +211,14 @@ const Borrow = () => {
     setConfirmTransactionCancelDialogOpen(false);
   };
 
-  const openEquipmentModal = (equipment) => {
-    if (!equipment || !equipment.items || equipment.items.length === 0) {
-      setEquipmentModalOpen(false);
+  const openEquipmentModal = (row) => {
+    if (!row || !row.equipment || row.equipment.length === 0) {
       return;
     }
-    setEquipmentDetails(equipment);
+    setEquipmentDetails({
+      item: row.item,
+      items: row.equipment,
+    });
     setEquipmentModalOpen(true);
   };
 
@@ -256,120 +251,117 @@ const Borrow = () => {
   const columns = [
     {
       name: "Transaction ID",
-      selector: (row) => row._id,
+      selector: (row) => row.item || "N/A",
       sortable: true,
     },
     {
-      name: "Transaction Date",
+      name: "Date Submitted",
       selector: (row) => new Date(row.createdAt).toLocaleDateString(),
       sortable: true,
     },
     {
-      name: "Transaction Time",
-      selector: (row) => new Date(row.createdAt).toLocaleTimeString(),
+      name: "Equipment Count",
+      selector: (row) => row.equipment?.length || 0,
       sortable: true,
-    },
-    {
-      name: "Equipment",
-      cell: (row) => (
-        <button
-          className="text-blue-500 hover:underline"
-          onClick={() => openEquipmentModal(row)}
-        >
-          See Equipment
-        </button>
-      ),
-    },
-    {
-      name: "Form",
-      cell: (row) => (
-        <button
-          className="text-green-500 hover:underline"
-          onClick={() => openBorrowerSlipPreview(row)}
-        >
-          View Form
-        </button>
-      ),
     },
     {
       name: "Status",
       selector: (row) => row.status,
       sortable: true,
+      cell: (row) => (
+        <span
+          className={`px-2 py-1 rounded-full text-sm ${
+            row.status === "Pending"
+              ? "bg-yellow-100 text-yellow-800"
+              : row.status === "Approved"
+              ? "bg-green-100 text-green-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
+          {row.status || "N/A"}
+        </span>
+      ),
     },
     {
-      name: "Action",
-      cell: (row) =>
-        row.status !== "Approved" &&
-        row.status !== "Returned" && (
+      name: "Actions",
+      cell: (row) => (
+        <div className="flex space-x-2">
           <button
-            className="text-red-500 hover:underline"
-            onClick={() => handleCancelTransaction(row._id)}
+            onClick={() => openEquipmentModal(row)}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
           >
-            Cancel Transaction
+            View Details
           </button>
-        ),
+          {row.status === "Pending" && (
+            <button
+              onClick={() => handleCancelTransaction(row.item)}
+              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
+      ),
     },
   ];
 
   const equipmentDetailsColumns = [
     {
       name: "Name",
-      selector: (row) => row.equipment.name,
+      selector: (row) => row.equipment?.name || "N/A",
       sortable: true,
     },
     {
       name: "Serial No",
-      selector: (row) => row.equipment.serialNumber,
-      sortable: true,
-    },
-    {
-      name: "Model",
-      selector: (row) => row.equipment.model,
+      selector: (row) => row.equipment?.serialNumber || "N/A",
       sortable: true,
     },
     {
       name: "Category",
-      selector: (row) => row.equipment.category,
-      sortable: true,
-    },
-    {
-      name: "Image",
-      cell: (row) => (
-        <button
-          className="text-blue-500 hover:underline"
-          onClick={() => openImageModal(row.equipment.image)}
-        >
-          View Image
-        </button>
-      ),
-    },
-    {
-      name: "Borrow Date",
-      selector: (row) => new Date(row.borrowDate).toLocaleString(),
-      sortable: true,
-    },
-    {
-      name: "Return Date",
-      selector: (row) => new Date(row.returnDate).toLocaleDateString(),
+      selector: (row) => row.equipment?.category || "N/A",
       sortable: true,
     },
     {
       name: "Status",
       selector: (row) => row.status,
       sortable: true,
+      cell: (row) => (
+        <span
+          className={`px-2 py-1 rounded-full text-sm ${
+            row.status === "Pending"
+              ? "bg-yellow-100 text-yellow-800"
+              : row.status === "Approved"
+              ? "bg-green-100 text-green-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
+          {row.status || "N/A"}
+        </span>
+      ),
     },
     {
-      name: "Action",
+      name: "Image",
       cell: (row) =>
-        row.status !== "Approved" &&
-        row.status !== "Returned" && (
+        row.equipment?.image && (
           <button
-            className="text-red-500 hover:underline"
-            onClick={() => handleCancel(equipmentDetails._id, row._id)}
+            className="text-blue-500 hover:text-blue-700"
+            onClick={() => openImageModal(row.equipment.image)}
           >
-            Cancel Item
+            View Image
           </button>
         ),
+    },
+    {
+      name: "Borrow Date",
+      selector: (row) =>
+        row.borrowDate ? new Date(row.borrowDate).toLocaleDateString() : "N/A",
+      sortable: true,
+    },
+    {
+      name: "Return Date",
+      selector: (row) =>
+        row.returnDate ? new Date(row.returnDate).toLocaleDateString() : "N/A",
+      sortable: true,
     },
   ];
 

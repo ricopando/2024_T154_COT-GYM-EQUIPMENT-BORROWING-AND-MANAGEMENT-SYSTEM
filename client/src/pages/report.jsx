@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
-import Sidebar from "../components/Sidebar/Sidebar";
-import Navbar from "../components/Navbar/AdminNavbar";
 import DataTable from "react-data-table-component";
 import EquipmentDetails from "../components/Report/EquipmentDetails";
+
 const Report = () => {
   const [borrowedItems, setBorrowedItems] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState("all");
   const [equipmentModalOpen, setEquipmentModalOpen] = useState(false);
   const [equipmentDetails, setEquipmentDetails] = useState([]);
@@ -68,8 +66,6 @@ const Report = () => {
     } catch (error) {
       console.error("Failed to fetch all borrowed items:", error);
       toast.error("Failed to load borrowed items");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -266,7 +262,7 @@ const Report = () => {
     printWindow.document.write(`
       <html>
         <head>
-          <title>Borrowed Items Report</title>
+          <title>Reports</title>
           <style>
             @page {
               size: landscape;
@@ -303,191 +299,176 @@ const Report = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Navbar />
-        <main className="flex-1 overflow-auto p-6">
-          {/* Header Section */}
-          <div className="mb-8">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1
-                  className="text-5xl font-bold text-black dark:text-white relative inline-block
-                after:content-[''] after:block after:w-1/2 after:h-1 after:bg-primary
-                after:mt-2 after:rounded-full"
-                >
-                  Borrowed Items Report
-                </h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-4 text-lg">
-                  Manage and track all borrowed equipment transactions
-                </p>
-              </div>
-              <div className="flex items-center gap-4">
-                {/* Add toggle switch before print button */}
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">
-                    Include Equipment Details
-                  </span>
-                  <button
-                    onClick={() =>
-                      setIncludeEquipmentDetails(!includeEquipmentDetails)
+    <div className="p-6">
+      {/* Header Section */}
+      <div className="mb-8">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1
+              className="text-4xl font-bold text-black dark:text-white relative inline-block
+              after:content-[''] after:block after:w-1/2 after:h-1 after:bg-primary
+              after:mt-2 after:rounded-full"
+            >
+              Reports
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-4 text-lg">
+              Manage and track all borrowed equipment transactions
+            </p>
+          </div>
+          <div className="flex items-center gap-4">
+            {/* Add toggle switch before print button */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">
+                Include Equipment Details
+              </span>
+              <button
+                onClick={() =>
+                  setIncludeEquipmentDetails(!includeEquipmentDetails)
+                }
+                className={`
+                  relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                  ${includeEquipmentDetails ? "bg-blue-600" : "bg-gray-200"}
+                `}
+                role="switch"
+                aria-checked={includeEquipmentDetails}
+              >
+                <span
+                  className={`
+                    inline-block h-4 w-4 transform rounded-full bg-white transition-transform
+                    ${
+                      includeEquipmentDetails
+                        ? "translate-x-6"
+                        : "translate-x-1"
                     }
-                    className={`
-                      relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                      ${includeEquipmentDetails ? "bg-blue-600" : "bg-gray-200"}
-                    `}
-                    role="switch"
-                    aria-checked={includeEquipmentDetails}
-                  >
-                    <span
-                      className={`
-                        inline-block h-4 w-4 transform rounded-full bg-white transition-transform
-                        ${
-                          includeEquipmentDetails
-                            ? "translate-x-6"
-                            : "translate-x-1"
-                        }
-                      `}
-                    />
-                  </button>
-                </div>
-                <button
-                  onClick={handlePrint}
-                  className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg transition-colors duration-200"
-                  aria-label="Print report"
-                >
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                    />
-                  </svg>
-                  Print Report
-                </button>
-              </div>
+                  `}
+                />
+              </button>
             </div>
+            <button
+              onClick={handlePrint}
+              className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg transition-colors duration-200"
+              aria-label="Print report"
+            >
+              <svg
+                className="w-4 h-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                />
+              </svg>
+              Print Report
+            </button>
+          </div>
+        </div>
 
-            {/* Add Date Filter Section */}
-            <div className="mt-6 flex flex-wrap items-center gap-4">
-              {/* Status Filter Buttons */}
-              <div className="flex flex-wrap gap-2">
-                {filterButtons.map((button) => (
-                  <button
-                    key={button.value}
-                    onClick={() => setActiveFilter(button.value)}
-                    className={`
-                      px-4 py-2 rounded-full text-sm font-medium transition-all duration-200
-                      ${
-                        activeFilter === button.value
-                          ? "bg-primary text-white shadow-md"
-                          : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
-                      }
-                    `}
-                    aria-label={`Filter by ${button.label}`}
-                  >
-                    {button.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Date Filter Section */}
-              <div className="flex items-center gap-2 ml-auto">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    aria-label="Start date"
-                  />
-                  <span className="text-gray-500">to</span>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    aria-label="End date"
-                  />
-                  <button
-                    onClick={handleResetDateFilter}
-                    className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 focus:outline-none"
-                    aria-label="Reset date filter"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
+        {/* Add Date Filter Section */}
+        <div className="mt-6 flex flex-wrap items-center gap-4">
+          {/* Status Filter Buttons */}
+          <div className="flex flex-wrap gap-2">
+            {filterButtons.map((button) => (
+              <button
+                key={button.value}
+                onClick={() => setActiveFilter(button.value)}
+                className={`
+                  px-4 py-2 rounded-full text-sm font-medium transition-all duration-200
+                  ${
+                    activeFilter === button.value
+                      ? "bg-primary text-white shadow-md"
+                      : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
+                  }
+                `}
+                aria-label={`Filter by ${button.label}`}
+              >
+                {button.label}
+              </button>
+            ))}
           </div>
 
-          {/* DataTable Section */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            {loading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="flex flex-col items-center">
-                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-                  <p className="mt-2 text-sm text-gray-500">Loading data...</p>
-                </div>
-              </div>
-            ) : (
-              <DataTable
-                columns={columns}
-                data={filteredItems}
-                pagination
-                responsive
-                highlightOnHover
-                striped
-                customStyles={{
-                  headRow: {
-                    style: {
-                      backgroundColor: "#F9FAFB",
-                      fontSize: "0.875rem",
-                      color: "#374151",
-                      fontWeight: "600",
-                    },
-                  },
-                  rows: {
-                    style: {
-                      fontSize: "0.875rem",
-                      color: "#1F2937",
-                      "&:hover": {
-                        backgroundColor: "#F3F4F6",
-                      },
-                    },
-                  },
-                }}
+          {/* Date Filter Section */}
+          <div className="flex items-center gap-2 ml-auto">
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Start date"
               />
-            )}
+              <span className="text-gray-500">to</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="End date"
+              />
+              <button
+                onClick={handleResetDateFilter}
+                className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 focus:outline-none"
+                aria-label="Reset date filter"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
-
-          {/* Equipment Details Modal */}
-          <EquipmentDetails
-            isOpen={equipmentModalOpen}
-            onClose={() => setEquipmentModalOpen(false)}
-            equipmentDetails={equipmentDetails}
-            setEquipmentDetails={setEquipmentDetails}
-          />
-        </main>
+        </div>
       </div>
+
+      {/* DataTable Section */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        <DataTable
+          columns={columns}
+          data={filteredItems}
+          pagination
+          responsive
+          highlightOnHover
+          striped
+          customStyles={{
+            headRow: {
+              style: {
+                backgroundColor: "#F9FAFB",
+                fontSize: "0.875rem",
+                color: "#374151",
+                fontWeight: "600",
+              },
+            },
+            rows: {
+              style: {
+                fontSize: "0.875rem",
+                color: "#1F2937",
+                "&:hover": {
+                  backgroundColor: "#F3F4F6",
+                },
+              },
+            },
+          }}
+        />
+      </div>
+
+      {/* Equipment Details Modal */}
+      <EquipmentDetails
+        isOpen={equipmentModalOpen}
+        onClose={() => setEquipmentModalOpen(false)}
+        equipmentDetails={equipmentDetails}
+        setEquipmentDetails={setEquipmentDetails}
+      />
     </div>
   );
 };
