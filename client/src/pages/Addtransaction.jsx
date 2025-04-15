@@ -385,7 +385,7 @@ const Addtransaction = () => {
         <button
           onClick={handleSubmit}
           disabled={loading || selectedItems.length === 0 || !selectedUser}
-          className="bg-green-500 text-white px-6 py-2 rounded disabled:bg-gray-400"
+          className="bg-primary text-white px-6 py-2 rounded disabled:bg-gray-400"
         >
           {loading ? "Creating Transaction..." : "Create Transaction"}
         </button>

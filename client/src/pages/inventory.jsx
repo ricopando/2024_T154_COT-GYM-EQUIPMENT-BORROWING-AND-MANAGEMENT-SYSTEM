@@ -546,8 +546,8 @@ const Inventory = () => {
 
       {/* Modals and Dialogs */}
       {modalState.isOpen && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-          <div className="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+          <div className="relative p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
             <div className="mt-3 text-center">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 {modalState.isEditMode ? "Edit Equipment" : "Add New Equipment"}
@@ -583,7 +583,7 @@ const Inventory = () => {
                   type="file"
                   accept="image/*"
                   onChange={handleFileChange}
-                  className="w-full p-2 border border-gray-300 rounded"
+                  className="w-full p-1 border border-gray-300 rounded text-sm"
                 />
                 <input
                   type="text"
@@ -602,18 +602,18 @@ const Inventory = () => {
                   className="w-full p-2 border border-gray-300 rounded"
                 />
               </div>
-              <div className="flex flex-col items-center px-4 py-3 space-y-2">
+              <div className="flex items-center justify-center space-x-2 px-4 py-3">
                 <button
                   onClick={() =>
                     setModalState({ ...modalState, isOpen: false })
                   }
-                  className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                  className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-1/2 shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAddOrEditEquipment}
-                  className="px-4 py-2 bg-primary text-white text-base font-medium rounded-md w-full shadow-sm"
+                  className="px-4 py-2 bg-primary text-white text-base font-medium rounded-md w-1/2 shadow-sm"
                 >
                   {modalState.isEditMode ? "Update" : "Save"}
                 </button>
@@ -625,8 +625,8 @@ const Inventory = () => {
 
       {/* Dialogs */}
       {dialogs.confirmDelete && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-          <div className="relative top-20 mx-auto p-5 border w-full max-w-sm shadow-lg rounded-md bg-white">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+          <div className="relative p-5 border w-full max-w-sm shadow-lg rounded-md bg-white">
             <div className="mt-3 text-center">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 Confirm Delete
@@ -634,18 +634,18 @@ const Inventory = () => {
               <div className="mt-2">
                 <p>Are you sure you want to delete this equipment?</p>
               </div>
-              <div className="items-center px-4 py-3">
+              <div className="flex items-center justify-center space-x-2 px-4 py-3">
                 <button
                   onClick={() =>
                     setDialogs({ ...dialogs, confirmDelete: false })
                   }
-                  className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                  className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-1/2 shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDeleteEquipment}
-                  className="px-4 py-2 bg-primary text-white text-base font-medium rounded-md w-full shadow-sm mt-2"
+                  className="px-4 py-2 bg-primary text-white text-base font-medium rounded-md w-1/2 shadow-sm"
                 >
                   Delete
                 </button>
@@ -656,8 +656,8 @@ const Inventory = () => {
       )}
 
       {dialogs.success && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-          <div className="relative top-20 mx-auto p-5 border w-full max-w-sm shadow-lg rounded-md bg-white">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+          <div className="relative p-5 border w-full max-w-sm shadow-lg rounded-md bg-white">
             <div className="mt-3 text-center">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 Success
