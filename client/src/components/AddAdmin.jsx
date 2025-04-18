@@ -142,20 +142,20 @@ const AddAdmin = ({ isOpen, onClose, onUserPromoted }) => {
       <div className="relative bg-white rounded-lg shadow-xl w-full max-w-4xl p-6">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 rounded-full"
+          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 rounded-full p-1"
           aria-label="Close modal"
         >
           <FaTimes className="w-5 h-5" />
         </button>
 
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Add New Admin</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Add New Admin</h2>
 
         {isLoading ? (
-          <div className="flex justify-center items-center py-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="flex justify-center items-center py-2">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
           </div>
         ) : error ? (
-          <div className="text-red-500 text-center py-4">{error}</div>
+          <div className="text-red-500 text-center py-2">{error}</div>
         ) : (
           <DataTable
             columns={columns}
@@ -168,6 +168,7 @@ const AddAdmin = ({ isOpen, onClose, onUserPromoted }) => {
                 style: {
                   backgroundColor: "#F9FAFB",
                   borderBottom: "1px solid #E5E7EB",
+                  minHeight: "40px",
                 },
               },
               headCells: {
@@ -175,14 +176,14 @@ const AddAdmin = ({ isOpen, onClose, onUserPromoted }) => {
                   fontSize: "0.875rem",
                   fontWeight: "600",
                   color: "#374151",
-                  padding: "12px 16px",
+                  padding: "8px 12px",
                 },
               },
               cells: {
                 style: {
                   fontSize: "0.875rem",
                   color: "#1F2937",
-                  padding: "12px 16px",
+                  padding: "8px 12px",
                 },
               },
             }}

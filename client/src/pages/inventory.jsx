@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaEye } from "react-icons/fa";
+import { MdModeEdit } from "react-icons/md";
+import { MdDelete } from "react-icons/md";
+import { MdHistory } from "react-icons/md";
 import DataTable from "react-data-table-component";
 import HistoryModal from "../components/HistoryModal";
 
@@ -393,7 +396,7 @@ const Inventory = () => {
                   : "pointer",
             }}
           >
-            Edit
+            <MdModeEdit />
           </button>
           <button
             onClick={() => handleDeleteClick(row)}
@@ -407,14 +410,14 @@ const Inventory = () => {
                   : "pointer",
             }}
           >
-            Delete
+            <MdDelete />
           </button>
           <button
             onClick={() => handleHistoryClick(row)}
             className="text-blue-600 hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-300"
             aria-label={`View history of ${row.name}`}
           >
-            History
+            <MdHistory />
           </button>
         </div>
       ),

@@ -120,7 +120,6 @@ const Navbar = () => {
               className="font-bold text-xl items-center flex gap-1"
             >
               <img src={buksuLogoW} alt="BUKSU Logo" className="w-30 h-20" />
-              GEMBS
             </Link>
           </div>
 

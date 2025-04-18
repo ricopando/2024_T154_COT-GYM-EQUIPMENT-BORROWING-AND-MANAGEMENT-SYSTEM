@@ -175,7 +175,7 @@ const Sidebar = () => {
         isOpen ? "w-64" : "w-16"
       } bg-primary text-white flex flex-col transition-width duration-300 relative z-10`}
     >
-      <div className="flex items-center justify-center p-2 border-b border-secondary">
+      <div className="flex items-center justify-center p-2">
         <button
           onClick={handleToggle}
           className="focus:outline-none focus:bg-gray-700 z-10"
@@ -185,7 +185,7 @@ const Sidebar = () => {
           <img
             src={buksuLogoW}
             alt="BUKSU Logo"
-            className={`transition-all duration-300 ${
+            className={`transition-all duration-200 ${
               isOpen ? "w-30 h-24" : "w-25 h-15"
             }`}
           />
