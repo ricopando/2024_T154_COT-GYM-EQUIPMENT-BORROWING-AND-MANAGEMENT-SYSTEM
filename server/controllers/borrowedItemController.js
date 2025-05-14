@@ -1,5 +1,6 @@
 import BorrowedItem from "../models/borrowedItem.js";
 import Equipment from "../models/equipment.js";
+import transporter from "../utils/mailer.js";
 
 // Get all borrowed items for the authenticated user
 const getBorrowedItems = async (req, res) => {
@@ -176,29 +177,68 @@ const updateBorrowedItemStatus = async (req, res) => {
     return res.status(401).json({ message: "User not authenticated" });
   }
   try {
-    const { id } = req.params;
     const { status } = req.body;
+    const borrowedItem = await BorrowedItem.findById(req.params.id)
+      .populate("user", "email displayName")
+      .populate("items.equipment", "name serialNumber");
 
-    // Find the borrowed item by its ID
-    const borrowedItem = await BorrowedItem.findById(id);
     if (!borrowedItem) {
-      return res.status(404).json({ message: "Item not found" });
+      return res.status(404).json({ message: "Borrowed item not found" });
     }
 
-    // Update the status of the borrowed item
     borrowedItem.status = status;
-
-    // Update the status of each equipment item in the array
-    borrowedItem.items.forEach((item) => {
-      item.status = status;
-    });
-
-    // Save the updated borrowed item
+    borrowedItem.items.forEach((item) => (item.status = status));
     await borrowedItem.save();
 
-    res.status(200).json(borrowedItem);
+    // Update equipment availability status
+    await Promise.all(
+      borrowedItem.items.map(async (item) => {
+        await Equipment.findByIdAndUpdate(item.equipment, {
+          availabilityStatus: status === "Approved" ? "Borrowed" : "Available",
+        });
+      })
+    );
+
+    // Send email notification if status is Approved
+    if (status === "Approved" && borrowedItem.user?.email) {
+      const equipmentList = borrowedItem.items
+        .map(
+          (item) => `- ${item.equipment.name} (${item.equipment.serialNumber})`
+        )
+        .join("\n");
+
+      const mailOptions = {
+        from: process.env.EMAIL,
+        to: borrowedItem.user.email,
+        subject: "Equipment Borrow Request Approved",
+        text: `Dear ${borrowedItem.user.displayName},
+
+Your equipment borrow request has been approved. You can now collect the following equipment:
+
+${equipmentList}
+
+Please bring your ID when collecting the equipment.
+
+Thank you,
+Gym Equipment Management System`,
+      };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error("Error sending approval email:", error);
+        } else {
+          console.log("Approval email sent:", info.response);
+        }
+      });
+    }
+
+    res.status(200).json({
+      message: "Status updated successfully",
+      items: borrowedItem.items,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Failed to update item status", error });
+    console.error(error);
+    res.status(500).json({ message: "Failed to update status" });
   }
 };
 
