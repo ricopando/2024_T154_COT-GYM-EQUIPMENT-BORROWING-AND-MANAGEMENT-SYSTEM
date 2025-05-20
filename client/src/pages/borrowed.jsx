@@ -6,6 +6,7 @@ import { toast } from "react-hot-toast";
 import ConfirmReturn from "../components/Borrowed/ConfirmReturn";
 import ApprovedModal from "../components/modal/approvedModal";
 import Form from "../components/Form";
+import Swal from "sweetalert2";
 
 const Borrowed = () => {
   const [borrowedItems, setBorrowedItems] = useState([]);
@@ -38,7 +39,12 @@ const Borrowed = () => {
         return item.status === "Approved" || item.status === "Returned";
       });
 
-      setBorrowedItems(filteredData);
+      // Sort by createdAt in descending order (newest first)
+      const sortedData = filteredData.sort((a, b) => {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+
+      setBorrowedItems(sortedData);
     } catch (error) {
       console.error("Failed to fetch all borrowed items:", error);
       toast.error("Failed to load borrowed items");
@@ -53,41 +59,41 @@ const Borrowed = () => {
     setSearchQuery(event.target.value);
   };
 
-  const handleReturnTransaction = (itemId) => {
-    console.log(`Return button clicked for transaction ID: ${itemId}`);
-    setTransactionToReturn(itemId);
-    setConfirmReturnDialogOpen(true);
-    console.log(`Transaction to return set to: ${transactionToReturn}`);
-    console.log(`Confirm return dialog open: ${confirmReturnDialogOpen}`);
-  };
-
-  const confirmReturnTransaction = async () => {
-    if (!transactionToReturn) {
-      toast.error("No transaction selected for return");
-      return;
-    }
-
+  const handleReturnTransaction = async (itemId) => {
     try {
-      setConfirmReturnDialogOpen(false);
-      setShowApprovedModal(true);
+      const result = await Swal.fire({
+        title: "Confirm Return",
+        text: "Are you sure you want to mark this transaction as returned?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, mark as returned",
+      });
 
-      const response = await axios.patch(
-        `http://localhost:8000/api/borrow-items/${transactionToReturn}/return`,
-        { status: "Returned" },
-        { withCredentials: true }
-      );
+      if (result.isConfirmed) {
+        const response = await axios.patch(
+          `http://localhost:8000/api/borrow-items/${itemId}/return`,
+          { status: "Returned" },
+          { withCredentials: true }
+        );
 
-      if (response.status === 200) {
-        toast.success("Items returned successfully");
-        await fetchAllBorrowedItems();
+        if (response.status === 200) {
+          Swal.fire({
+            title: "Success!",
+            text: "Transaction marked as returned successfully",
+            icon: "success",
+          });
+          await fetchAllBorrowedItems();
+        }
       }
     } catch (error) {
-      console.error("Return transaction failed:", error);
-      toast.error(error.response?.data?.message || "Failed to return items");
-
-      setTransactionToReturn(null);
-      setConfirmReturnDialogOpen(false);
-      setShowApprovedModal(false);
+      console.error("Error returning transaction:", error);
+      Swal.fire({
+        title: "Error!",
+        text: "Failed to mark transaction as returned",
+        icon: "error",
+      });
     }
   };
 
@@ -104,18 +110,6 @@ const Borrowed = () => {
     setEquipmentModalOpen(true);
   };
 
-  // Ensure useEffect is correctly set up to update equipment details
-  useEffect(() => {
-    if (equipmentModalOpen) {
-      const currentTransaction = borrowedItems.find(
-        (item) => item.id === equipmentDetails[0]?.transactionId
-      );
-      if (currentTransaction) {
-        setEquipmentDetails(currentTransaction.equipment);
-      }
-    }
-  }, [borrowedItems, equipmentModalOpen, equipmentDetails]);
-
   const closeEquipmentModal = () => {
     setEquipmentDetails(null);
     setEquipmentModalOpen(false);
@@ -128,7 +122,7 @@ const Borrowed = () => {
     const searchLower = searchQuery.toLowerCase();
     const userName = item.user.name || "";
     const userEmail = item.user.email || "";
-    const itemName = item.items?.[0]?.equipment?.name || "";
+    const itemName = item.equipment?.[0]?.equipment?.name || "";
 
     return (
       userName.toLowerCase().includes(searchLower) ||
@@ -136,63 +130,6 @@ const Borrowed = () => {
       itemName.toLowerCase().includes(searchLower)
     );
   });
-
-  const updateEquipmentStatus = (borrowedItemId, itemId, newStatus) => {
-    setBorrowedItems((prevItems) =>
-      prevItems.map((item) =>
-        item._id === borrowedItemId
-          ? {
-              ...item,
-              equipment: item.equipment.map((equip) =>
-                equip.id === itemId ? { ...equip, status: newStatus } : equip
-              ),
-            }
-          : item
-      )
-    );
-
-    // Check if all equipment items are approved
-    checkAndReturnTransaction(borrowedItemId);
-  };
-
-  const checkAndReturnTransaction = async (borrowedItemId) => {
-    const transaction = borrowedItems.find(
-      (item) => item._id === borrowedItemId
-    );
-    if (
-      transaction &&
-      transaction.equipment.every((equip) => equip.status === "Returned")
-    ) {
-      try {
-        const response = await axios.patch(
-          `http://localhost:8000/api/borrow-items/${borrowedItemId}`,
-          {
-            status: "Returned",
-          },
-          {
-            withCredentials: true,
-          }
-        );
-
-        if (response.status === 200) {
-          console.log("Transaction status updated to Returned.");
-          toast.success("Transaction status updated to Returned.");
-          await fetchAllBorrowedItems();
-        } else {
-          console.log("Failed to update transaction status.");
-          toast.error("Failed to update transaction status.");
-        }
-      } catch (error) {
-        console.error("Failed to update transaction status:", error);
-        toast.error("Failed to update transaction status.");
-      }
-    }
-  };
-
-  const closeConfirmReturnDialog = () => {
-    setTransactionToReturn(null);
-    setConfirmReturnDialogOpen(false);
-  };
 
   const handleFormOpen = (userDetails, borrowedItems) => {
     setSelectedUserDetails(userDetails);
@@ -209,8 +146,16 @@ const Borrowed = () => {
         fontWeight: "bold",
       },
     },
-    { name: "User", selector: (row) => row.user.name, sortable: true },
-    { name: "Email", selector: (row) => row.user.email, sortable: true },
+    {
+      name: "User",
+      selector: (row) => row.user?.displayName || row.user?.name || "N/A",
+      sortable: true,
+    },
+    {
+      name: "Email",
+      selector: (row) => row.user?.email || "N/A",
+      sortable: true,
+    },
     {
       name: "Transaction Date",
       selector: (row) => new Date(row.createdAt).toLocaleDateString(),
@@ -370,16 +315,16 @@ const Borrowed = () => {
         setBorrowedItems={setBorrowedItems}
         toast={toast}
         fetchAllBorrowedItems={fetchAllBorrowedItems}
-        updateEquipmentStatus={updateEquipmentStatus}
       />
       <ConfirmReturn
         isOpen={confirmReturnDialogOpen}
-        onClose={closeConfirmReturnDialog}
-        onConfirm={confirmReturnTransaction}
+        onClose={() => setConfirmReturnDialogOpen(false)}
+        onConfirm={() => {}}
       />
       {isFormOpen && (
         <Form
           userDetails={selectedUserDetails}
+          s
           borrowedItems={selectedBorrowedItems}
           onClose={() => {
             setIsFormOpen(false);

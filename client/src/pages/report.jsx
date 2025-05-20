@@ -62,7 +62,12 @@ const Report = () => {
         return true;
       });
 
-      setBorrowedItems(filteredData);
+      // Sort by createdAt in descending order (newest first)
+      const sortedData = filteredData.sort((a, b) => {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+
+      setBorrowedItems(sortedData);
     } catch (error) {
       console.error("Failed to fetch all borrowed items:", error);
       toast.error("Failed to load borrowed items");

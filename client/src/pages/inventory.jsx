@@ -6,6 +6,7 @@ import { MdDelete } from "react-icons/md";
 import { MdHistory } from "react-icons/md";
 import DataTable from "react-data-table-component";
 import HistoryModal from "../components/HistoryModal";
+import Swal from "sweetalert2";
 
 const Inventory = () => {
   const [equipmentItems, setEquipmentItems] = useState([]);
@@ -307,13 +308,52 @@ const Inventory = () => {
     }
   }, [searchQuery, categoryFilter, equipmentItems]);
 
-  const handleDeleteClick = (item) => {
-    if (item.availabilityStatus === "Borrowed") {
-      setDialogs({ ...dialogs, borrowed: true });
-      return;
-    }
-    setModalState({ ...modalState, selectedItem: item });
-    setDialogs({ ...dialogs, confirmDelete: true });
+  const handleDeleteClick = (equipment) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Are you sure you want to delete this equipment?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await axios.delete(
+            `http://localhost:8000/api/equipment/${equipment._id}`,
+            {
+              withCredentials: true,
+            }
+          );
+
+          if (response.status === 200) {
+            Swal.fire({
+              title: "Deleted!",
+              text: "Equipment has been deleted successfully.",
+              icon: "success",
+              confirmButtonColor: "#3085d6",
+            });
+            await fetchEquipment();
+          } else {
+            Swal.fire({
+              title: "Error!",
+              text: "Failed to delete equipment.",
+              icon: "error",
+              confirmButtonColor: "#d33",
+            });
+          }
+        } catch (error) {
+          console.error("Failed to delete equipment:", error);
+          Swal.fire({
+            title: "Error!",
+            text: "Failed to delete equipment.",
+            icon: "error",
+            confirmButtonColor: "#d33",
+          });
+        }
+      }
+    });
   };
 
   const handleHistoryClick = (item) => {
@@ -627,37 +667,6 @@ const Inventory = () => {
       )}
 
       {/* Dialogs */}
-      {dialogs.confirmDelete && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-          <div className="relative p-5 border w-full max-w-sm shadow-lg rounded-md bg-white">
-            <div className="mt-3 text-center">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Confirm Delete
-              </h3>
-              <div className="mt-2">
-                <p>Are you sure you want to delete this equipment?</p>
-              </div>
-              <div className="flex items-center justify-center space-x-2 px-4 py-3">
-                <button
-                  onClick={() =>
-                    setDialogs({ ...dialogs, confirmDelete: false })
-                  }
-                  className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-1/2 shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDeleteEquipment}
-                  className="px-4 py-2 bg-primary text-white text-base font-medium rounded-md w-1/2 shadow-sm"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {dialogs.success && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
           <div className="relative p-5 border w-full max-w-sm shadow-lg rounded-md bg-white">

@@ -4,9 +4,9 @@ import DataTable from "react-data-table-component";
 import { toast } from "react-hot-toast";
 import DeleteModal from "../components/modal/deleteModal";
 import EquipmentDetails from "../components/Transaction/EquipmentDetails";
-import ConfirmDeclineDialog from "../components/Transaction/ConfirmDeclineDialog";
-import ConfirmApproved from "../components/Transaction/ConfirmApproved";
-import ApprovedModal from "../components/modal/approvedModal";
+import { FaCheck } from "react-icons/fa";
+import { MdCancel } from "react-icons/md";
+import Swal from "sweetalert2";
 
 const Transaction = () => {
   const [borrowedItems, setBorrowedItems] = useState([]);
@@ -15,12 +15,7 @@ const Transaction = () => {
   const [equipmentModalOpen, setEquipmentModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [declineTransactionId, setDeclineTransactionId] = useState(null);
-  const [confirmDeclineDialogOpen, setConfirmDeclineDialogOpen] =
-    useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showApprovedModal, setShowApprovedModal] = useState(false);
-  const [confirmApprovedDialogOpen, setConfirmApprovedDialogOpen] =
-    useState(false);
   const [transactionToApprove, setTransactionToApprove] = useState(null);
 
   const fetchAllBorrowedItems = async () => {
@@ -143,15 +138,17 @@ const Transaction = () => {
             <div className="flex justify-center space-x-2">
               <button
                 onClick={() => handleApproveTransaction(row._id || row.item)}
-                className="bg-primary text-white py-1 px-3 rounded hover:bg-primary-dark"
+                className="text-white py-1 px-3 rounded hover:bg-primary-dark"
+                style={{ backgroundColor: "#008000" }}
               >
-                Approve
+                <FaCheck />
               </button>
               <button
                 onClick={() => handleDeclineTransaction(row._id || row.item)}
-                className="bg-gray-500 text-white py-1 px-3 rounded hover:bg-gray-600"
+                className="text-white py-1 px-3 rounded hover:bg-gray-600"
+                style={{ backgroundColor: "#FF0000" }}
               >
-                Decline
+                <MdCancel />
               </button>
             </div>
           );
@@ -210,56 +207,68 @@ const Transaction = () => {
   };
 
   const handleApproveTransaction = (itemId) => {
-    setTransactionToApprove(itemId);
-    setConfirmApprovedDialogOpen(true);
-  };
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You want to approve this transaction?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, approve it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await axios.patch(
+            `http://localhost:8000/api/borrow-items/${itemId}`,
+            {
+              status: "Approved",
+            },
+            {
+              withCredentials: true,
+            }
+          );
 
-  const confirmApprovedTransaction = async () => {
-    if (!transactionToApprove) return;
-    setConfirmApprovedDialogOpen(false);
-    setShowApprovedModal(true); // Ensure modal is shown
-    try {
-      // Update the transaction status to 'Approved'
-      const response = await axios.patch(
-        `http://localhost:8000/api/borrow-items/${transactionToApprove}`,
-        {
-          status: "Approved",
-        },
-        {
-          withCredentials: true,
+          if (response.status === 200) {
+            const updatedItems = response.data.items.map((item) => ({
+              ...item,
+              status: "Approved",
+            }));
+
+            setBorrowedItems((prevItems) =>
+              prevItems.map((item) =>
+                item._id === itemId
+                  ? { ...item, status: "Approved", equipment: updatedItems }
+                  : item
+              )
+            );
+
+            Swal.fire({
+              title: "Approved!",
+              text: "Transaction has been approved successfully.",
+              icon: "success",
+              confirmButtonColor: "#3085d6",
+            });
+
+            await fetchAllBorrowedItems();
+          } else {
+            Swal.fire({
+              title: "Error!",
+              text: "Failed to approve transaction.",
+              icon: "error",
+              confirmButtonColor: "#d33",
+            });
+          }
+        } catch (error) {
+          console.error("Failed to approve transaction:", error);
+          Swal.fire({
+            title: "Error!",
+            text: "Failed to approve transaction.",
+            icon: "error",
+            confirmButtonColor: "#d33",
+          });
         }
-      );
-
-      if (response.status === 200) {
-        // Update the status of each equipment item in the transaction to 'Approved'
-        const updatedItems = response.data.items.map((item) => ({
-          ...item,
-          status: "Approved",
-        }));
-
-        // Update the state with the new status for each equipment item
-        setBorrowedItems((prevItems) =>
-          prevItems.map((item) =>
-            item._id === transactionToApprove
-              ? { ...item, status: "Approved", equipment: updatedItems }
-              : item
-          )
-        );
-        toast.success("Transaction approved successfully.");
-
-        // Fetch all borrowed items to refresh the table
-        await fetchAllBorrowedItems();
-      } else {
-        toast.error("Failed to approve transaction.");
       }
-    } catch (error) {
-      console.error("Failed to approve transaction:", error);
-      toast.error("Failed to approve transaction.");
-    } finally {
-      setTransactionToApprove(null);
-      setConfirmApprovedDialogOpen(false);
-      setShowApprovedModal(false); // Ensure modal is hidden
-    }
+    });
   };
 
   const handleDeclineTransaction = (itemId) => {
@@ -268,30 +277,38 @@ const Transaction = () => {
       toast.error("Invalid transaction ID.");
       return;
     }
-    setDeclineTransactionId(itemId);
-    setConfirmDeclineDialogOpen(true);
-  };
 
-  const confirmDeclineTransaction = async () => {
-    if (declineTransactionId) {
-      setConfirmDeclineDialogOpen(false);
-      setShowDeleteModal(true);
-      try {
-        await handleDeleteTransaction(declineTransactionId);
-        await fetchAllBorrowedItems(); // Ensure this is called to refresh data
-        setDeclineTransactionId(null);
-      } catch (error) {
-        console.error("Failed to decline transaction:", error);
-        toast.error("Failed to decline transaction.");
-      } finally {
-        setShowDeleteModal(false);
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You want to decline this transaction?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, decline it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await handleDeleteTransaction(itemId);
+          await fetchAllBorrowedItems();
+
+          Swal.fire({
+            title: "Declined!",
+            text: "Transaction has been declined successfully.",
+            icon: "success",
+            confirmButtonColor: "#3085d6",
+          });
+        } catch (error) {
+          console.error("Failed to decline transaction:", error);
+          Swal.fire({
+            title: "Error!",
+            text: "Failed to decline transaction.",
+            icon: "error",
+            confirmButtonColor: "#d33",
+          });
+        }
       }
-    }
-  };
-
-  const closeConfirmDeclineDialog = () => {
-    setDeclineTransactionId(null);
-    setConfirmDeclineDialogOpen(false);
+    });
   };
 
   const openEquipmentModal = async (equipment, transactionId) => {
@@ -412,11 +429,6 @@ const Transaction = () => {
     ) {
       handleApproveTransaction(borrowedItemId);
     }
-  };
-
-  const closeConfirmApprovedDialog = () => {
-    setTransactionToApprove(null);
-    setConfirmApprovedDialogOpen(false);
   };
 
   // Main Component Return
@@ -543,7 +555,6 @@ const Transaction = () => {
 
       {/* Keep existing modals */}
       {showDeleteModal && <DeleteModal />}
-      {showApprovedModal && <ApprovedModal />}
 
       <EquipmentDetails
         isOpen={equipmentModalOpen}
@@ -551,21 +562,9 @@ const Transaction = () => {
         equipmentDetails={equipmentDetails}
         setEquipmentDetails={setEquipmentDetails}
         setBorrowedItems={setBorrowedItems}
-        setShowDeleteModal={setShowDeleteModal}
         toast={toast}
         fetchAllBorrowedItems={fetchAllBorrowedItems}
         updateEquipmentStatus={updateEquipmentStatus}
-        showApprovedModal={false}
-      />
-      <ConfirmDeclineDialog
-        isOpen={confirmDeclineDialogOpen}
-        onClose={closeConfirmDeclineDialog}
-        onConfirm={confirmDeclineTransaction}
-      />
-      <ConfirmApproved
-        isOpen={confirmApprovedDialogOpen}
-        onClose={closeConfirmApprovedDialog}
-        onConfirm={confirmApprovedTransaction}
       />
     </div>
   );

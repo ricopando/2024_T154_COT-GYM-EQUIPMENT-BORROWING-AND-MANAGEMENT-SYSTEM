@@ -3,6 +3,7 @@ import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { toast } from "react-hot-toast";
+import Swal from "sweetalert2";
 
 const Addtransaction = () => {
   const [equipmentItems, setEquipmentItems] = useState([]);
@@ -101,38 +102,61 @@ const Addtransaction = () => {
       return;
     }
 
-    setLoading(true);
-    try {
-      const response = await axios.post(
-        "http://localhost:8000/api/borrow-items/user",
-        {
-          userId: selectedUser,
-          items: selectedItems.map((item) => ({
-            equipment: item.equipment._id,
-            borrowDate: item.borrowDate,
-            returnDate: item.returnDate,
-            status: "Pending",
-          })),
-          status: "Pending",
+    Swal.fire({
+      title: "Confirm Transaction",
+      text: "Are you sure you want to create this transaction?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, create it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        setLoading(true);
+        try {
+          const response = await axios.post(
+            "http://localhost:8000/api/borrow-items/user",
+            {
+              userId: selectedUser,
+              items: selectedItems.map((item) => ({
+                equipment: item.equipment._id,
+                borrowDate: item.borrowDate,
+                returnDate: item.returnDate,
+                status: "Pending",
+              })),
+              status: "Pending",
+            }
+          );
+
+          console.log("Success:", response.data);
+          Swal.fire({
+            title: "Success!",
+            text: "Transaction created successfully",
+            icon: "success",
+            confirmButtonColor: "#3085d6",
+          });
+
+          // Optional: Clear form after successful submission
+          setSelectedItems([]);
+          setSelectedUser("");
+        } catch (error) {
+          console.error(
+            "Error details:",
+            error.response?.data || error.message
+          );
+          Swal.fire({
+            title: "Error!",
+            text: `Failed to create transaction: ${
+              error.response?.data?.message || error.message
+            }`,
+            icon: "error",
+            confirmButtonColor: "#d33",
+          });
+        } finally {
+          setLoading(false);
         }
-      );
-
-      console.log("Success:", response.data);
-      toast.success("Transaction created successfully");
-
-      // Optional: Clear form after successful submission
-      setSelectedItems([]);
-      setSelectedUser("");
-    } catch (error) {
-      console.error("Error details:", error.response?.data || error.message);
-      toast.error(
-        `Failed to create transaction: ${
-          error.response?.data?.message || error.message
-        }`
-      );
-    } finally {
-      setLoading(false);
-    }
+      }
+    });
   };
 
   const filteredEquipment = equipmentItems.filter((item) => {

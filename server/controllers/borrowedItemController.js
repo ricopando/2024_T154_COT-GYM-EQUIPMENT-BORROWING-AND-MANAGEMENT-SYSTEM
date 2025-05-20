@@ -250,7 +250,7 @@ const getBorrowedItemsByUser = async (req, res) => {
   try {
     const borrowedItems = await BorrowedItem.find({
       user: req.user._id,
-      status: "Pending", // Only get pending items
+      status: { $in: ["Pending", "Approved", "Returned"] },
     })
       .populate("user", "displayName email")
       .populate("items.equipment", "name serialNumber image model category");

@@ -138,8 +138,8 @@ const AddAdmin = ({ isOpen, onClose, onUserPromoted }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50">
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-4xl p-6">
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-20">
+      <div className="relative bg-white rounded-lg shadow-xl w-[95%] max-w-3xl mx-4 p-4 md:p-6 max-h-[80vh] overflow-hidden flex flex-col">
         <button
           onClick={onClose}
           className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 rounded-full p-1"
@@ -148,7 +148,7 @@ const AddAdmin = ({ isOpen, onClose, onUserPromoted }) => {
           <FaTimes className="w-5 h-5" />
         </button>
 
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Add New Admin</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Add New Admin</h2>
 
         {isLoading ? (
           <div className="flex justify-center items-center py-2">
@@ -157,43 +157,45 @@ const AddAdmin = ({ isOpen, onClose, onUserPromoted }) => {
         ) : error ? (
           <div className="text-red-500 text-center py-2">{error}</div>
         ) : (
-          <DataTable
-            columns={columns}
-            data={users}
-            pagination
-            highlightOnHover
-            responsive
-            customStyles={{
-              headRow: {
-                style: {
-                  backgroundColor: "#F9FAFB",
-                  borderBottom: "1px solid #E5E7EB",
-                  minHeight: "40px",
+          <div className="overflow-y-auto flex-1">
+            <DataTable
+              columns={columns}
+              data={users}
+              pagination
+              highlightOnHover
+              responsive
+              customStyles={{
+                headRow: {
+                  style: {
+                    backgroundColor: "#F9FAFB",
+                    borderBottom: "1px solid #E5E7EB",
+                    minHeight: "40px",
+                  },
                 },
-              },
-              headCells: {
-                style: {
-                  fontSize: "0.875rem",
-                  fontWeight: "600",
-                  color: "#374151",
-                  padding: "8px 12px",
+                headCells: {
+                  style: {
+                    fontSize: "0.875rem",
+                    fontWeight: "600",
+                    color: "#374151",
+                    padding: "8px 12px",
+                  },
                 },
-              },
-              cells: {
-                style: {
-                  fontSize: "0.875rem",
-                  color: "#1F2937",
-                  padding: "8px 12px",
+                cells: {
+                  style: {
+                    fontSize: "0.875rem",
+                    color: "#1F2937",
+                    padding: "8px 12px",
+                  },
                 },
-              },
-            }}
-          />
+              }}
+            />
+          </div>
         )}
       </div>
 
       {showSuccessModal && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50">
-          <div className="relative bg-white rounded-lg shadow-xl p-6 max-w-sm w-full mx-4">
+          <div className="relative bg-white rounded-lg shadow-xl p-4 md:p-6 max-w-sm w-[90%] mx-4">
             <div className="flex flex-col items-center">
               <div className="mb-4 rounded-full bg-green-100 p-3">
                 <svg
