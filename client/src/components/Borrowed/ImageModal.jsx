@@ -1,21 +1,21 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from "react";
 
 const ImageModal = ({ isOpen, onClose, imageUrl }) => {
   const modalRef = useRef();
 
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === "Escape") onClose();
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
+      document.addEventListener("keydown", handleKeyDown);
       modalRef.current.focus();
     } else {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown);
     }
 
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
@@ -32,15 +32,15 @@ const ImageModal = ({ isOpen, onClose, imageUrl }) => {
         tabIndex="-1"
         ref={modalRef}
       >
-        <img 
-          src={imageUrl} 
-          alt="Equipment" 
+        <img
+          src={imageUrl}
+          alt="Equipment"
           className="w-64 h-64 object-contain rounded"
           id="image-modal-description"
         />
         <button
           onClick={onClose}
-          className="absolute top-0 right-0 mt-2 mr-2 text-red-600 hover:text-red-800"
+          className="absolute top-0 right-0 mt-2 mr-2 text-black-600 hover:text-black-800"
           aria-label="Close image modal"
         >
           &times;

@@ -1,25 +1,21 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Sidebar from "../components/Sidebar/Sidebar";
-import Navbar from "../components/Navbar/AdminNavbar";
-import LoadingModal from "../components/modal/loadingModal";
 import DataTable from "react-data-table-component";
 import EquipmentDetails from "../components/Borrowed/EquipmentDetails";
 import { toast } from "react-hot-toast";
 import ConfirmReturn from "../components/Borrowed/ConfirmReturn";
 import ApprovedModal from "../components/modal/approvedModal";
 import Form from "../components/Form";
+import Swal from "sweetalert2";
 
 const Borrowed = () => {
   const [borrowedItems, setBorrowedItems] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [equipmentDetails, setEquipmentDetails] = useState(null);
   const [equipmentModalOpen, setEquipmentModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showApprovedModal, setShowApprovedModal] = useState(false);
   const [confirmReturnDialogOpen, setConfirmReturnDialogOpen] = useState(false);
   const [transactionToReturn, setTransactionToReturn] = useState(null);
-  const [approveLoading, setApproveLoading] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedUserDetails, setSelectedUserDetails] = useState(null);
   const [selectedBorrowedItems, setSelectedBorrowedItems] = useState(null);
@@ -38,24 +34,20 @@ const Borrowed = () => {
         id: index + 1,
       }));
 
+      // Filter only approved and returned items
       const filteredData = dataWithId.filter((item) => {
-        if (item.status !== "Approved" && item.status !== "Returned") {
-          return false;
-        }
-        if (!item.equipment || item.equipment.length === 0) {
-          if (item._id) {
-          }
-          return false;
-        }
-        return true;
+        return item.status === "Approved" || item.status === "Returned";
       });
 
-      setBorrowedItems(filteredData);
+      // Sort by createdAt in descending order (newest first)
+      const sortedData = filteredData.sort((a, b) => {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+
+      setBorrowedItems(sortedData);
     } catch (error) {
       console.error("Failed to fetch all borrowed items:", error);
       toast.error("Failed to load borrowed items");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -67,43 +59,41 @@ const Borrowed = () => {
     setSearchQuery(event.target.value);
   };
 
-  const handleReturnTransaction = (itemId) => {
-    console.log(`Return button clicked for transaction ID: ${itemId}`);
-    setTransactionToReturn(itemId);
-    setConfirmReturnDialogOpen(true);
-    console.log(`Transaction to return set to: ${transactionToReturn}`);
-    console.log(`Confirm return dialog open: ${confirmReturnDialogOpen}`);
-  };
-
-  const confirmReturnTransaction = async () => {
-    if (!transactionToReturn) {
-      toast.error("No transaction selected for return");
-      return;
-    }
-
+  const handleReturnTransaction = async (itemId) => {
     try {
-      setConfirmReturnDialogOpen(false);
-      setApproveLoading(true);
-      setShowApprovedModal(true);
+      const result = await Swal.fire({
+        title: "Confirm Return",
+        text: "Are you sure you want to mark this transaction as returned?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, mark as returned",
+      });
 
-      const response = await axios.patch(
-        `http://localhost:8000/api/borrow-items/${transactionToReturn}/return`,
-        { status: "Returned" },
-        { withCredentials: true }
-      );
+      if (result.isConfirmed) {
+        const response = await axios.patch(
+          `http://localhost:8000/api/borrow-items/${itemId}/return`,
+          { status: "Returned" },
+          { withCredentials: true }
+        );
 
-      if (response.status === 200) {
-        toast.success("Items returned successfully");
-        await fetchAllBorrowedItems();
+        if (response.status === 200) {
+          Swal.fire({
+            title: "Success!",
+            text: "Transaction marked as returned successfully",
+            icon: "success",
+          });
+          await fetchAllBorrowedItems();
+        }
       }
     } catch (error) {
-      console.error("Return transaction failed:", error);
-      toast.error(error.response?.data?.message || "Failed to return items");
-    } finally {
-      setTransactionToReturn(null);
-      setConfirmReturnDialogOpen(false);
-      setApproveLoading(false);
-      setShowApprovedModal(false);
+      console.error("Error returning transaction:", error);
+      Swal.fire({
+        title: "Error!",
+        text: "Failed to mark transaction as returned",
+        icon: "error",
+      });
     }
   };
 
@@ -120,87 +110,26 @@ const Borrowed = () => {
     setEquipmentModalOpen(true);
   };
 
-  // Ensure useEffect is correctly set up to update equipment details
-  useEffect(() => {
-    if (equipmentModalOpen) {
-      const currentTransaction = borrowedItems.find(
-        (item) => item.id === equipmentDetails[0]?.transactionId
-      );
-      if (currentTransaction) {
-        setEquipmentDetails(currentTransaction.equipment);
-      }
-    }
-  }, [borrowedItems, equipmentModalOpen, equipmentDetails]);
-
   const closeEquipmentModal = () => {
     setEquipmentDetails(null);
     setEquipmentModalOpen(false);
   };
 
-  // Filtered data based on search query
-  const filteredItems = borrowedItems.filter(
-    (item) =>
-      item.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.item.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filtered data based on search query with null checks
+  const filteredItems = borrowedItems.filter((item) => {
+    if (!item || !item.user) return false;
 
-  const updateEquipmentStatus = (borrowedItemId, itemId, newStatus) => {
-    setBorrowedItems((prevItems) =>
-      prevItems.map((item) =>
-        item._id === borrowedItemId
-          ? {
-              ...item,
-              equipment: item.equipment.map((equip) =>
-                equip.id === itemId ? { ...equip, status: newStatus } : equip
-              ),
-            }
-          : item
-      )
+    const searchLower = searchQuery.toLowerCase();
+    const userName = item.user.name || "";
+    const userEmail = item.user.email || "";
+    const itemName = item.equipment?.[0]?.equipment?.name || "";
+
+    return (
+      userName.toLowerCase().includes(searchLower) ||
+      userEmail.toLowerCase().includes(searchLower) ||
+      itemName.toLowerCase().includes(searchLower)
     );
-
-    // Check if all equipment items are approved
-    checkAndReturnTransaction(borrowedItemId);
-  };
-
-  const checkAndReturnTransaction = async (borrowedItemId) => {
-    const transaction = borrowedItems.find(
-      (item) => item._id === borrowedItemId
-    );
-    if (
-      transaction &&
-      transaction.equipment.every((equip) => equip.status === "Returned")
-    ) {
-      try {
-        const response = await axios.patch(
-          `http://localhost:8000/api/borrow-items/${borrowedItemId}`,
-          {
-            status: "Returned",
-          },
-          {
-            withCredentials: true,
-          }
-        );
-
-        if (response.status === 200) {
-          console.log("Transaction status updated to Returned.");
-          toast.success("Transaction status updated to Returned.");
-          await fetchAllBorrowedItems();
-        } else {
-          console.log("Failed to update transaction status.");
-          toast.error("Failed to update transaction status.");
-        }
-      } catch (error) {
-        console.error("Failed to update transaction status:", error);
-        toast.error("Failed to update transaction status.");
-      }
-    }
-  };
-
-  const closeConfirmReturnDialog = () => {
-    setTransactionToReturn(null);
-    setConfirmReturnDialogOpen(false);
-  };
+  });
 
   const handleFormOpen = (userDetails, borrowedItems) => {
     setSelectedUserDetails(userDetails);
@@ -217,8 +146,16 @@ const Borrowed = () => {
         fontWeight: "bold",
       },
     },
-    { name: "User", selector: (row) => row.user.name, sortable: true },
-    { name: "Email", selector: (row) => row.user.email, sortable: true },
+    {
+      name: "User",
+      selector: (row) => row.user?.displayName || row.user?.name || "N/A",
+      sortable: true,
+    },
+    {
+      name: "Email",
+      selector: (row) => row.user?.email || "N/A",
+      sortable: true,
+    },
     {
       name: "Transaction Date",
       selector: (row) => new Date(row.createdAt).toLocaleDateString(),
@@ -288,149 +225,116 @@ const Borrowed = () => {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <Navbar />
-        <div className="flex-1 p-8 overflow-y-auto">
-          <div className="max-w-full mx-auto">
-            <div className="mb-8">
-              <h1
-                className="text-5xl font-bold text-black dark:text-white relative inline-block
-                after:content-[''] after:block after:w-1/2 after:h-1 after:bg-primary
-                after:mt-2 after:rounded-full"
-              >
-                BORROWED EQUIPMENT
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-4 text-lg">
-                Manage and track all borrowed equipment transactions
-              </p>
-            </div>
+    <div className="p-8">
+      <div className="max-w-full mx-auto">
+        <div className="mb-8">
+          <h1
+            className="text-4xl font-bold text-black dark:text-white relative inline-block
+            after:content-[''] after:block after:w-1/2 after:h-1 after:bg-primary
+            after:mt-2 after:rounded-full"
+          >
+            Borrowed Equipment
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-4 text-lg">
+            Manage and track all borrowed equipment transactions
+          </p>
+        </div>
 
-            <div className="bg-white rounded-lg shadow mb-6">
-              <div className="p-4 border-b border-gray-200">
-                <div className="flex items-center justify-end space-x-4">
-                  <div className="w-1/8">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="Search "
-                        value={searchQuery}
-                        onChange={handleSearchChange}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        <div className="bg-white rounded-lg shadow mb-6">
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center justify-end space-x-4">
+              <div className="w-1/8">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search "
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <div className="absolute left-3 top-2.5 text-gray-400">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                       />
-                      <div className="absolute left-3 top-2.5 text-gray-400">
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                          />
-                        </svg>
-                      </div>
-                    </div>
+                    </svg>
                   </div>
                 </div>
               </div>
-
-              {loading ? (
-                <div className="flex justify-center items-center h-64">
-                  <div className="loader"></div>
-                </div>
-              ) : (
-                <DataTable
-                  columns={columns}
-                  data={filteredItems}
-                  pagination
-                  highlightOnHover
-                  pointerOnHover
-                  responsive
-                  customStyles={{
-                    headRow: {
-                      style: {
-                        backgroundColor: "#F9FAFB",
-                        borderBottom: "1px solid #E5E7EB",
-                      },
-                    },
-                    headCells: {
-                      style: {
-                        fontSize: "0.875rem",
-                        fontWeight: "600",
-                        color: "#374151",
-                        padding: "12px 16px",
-                      },
-                    },
-                    cells: {
-                      style: {
-                        fontSize: "0.875rem",
-                        color: "#1F2937",
-                        padding: "12px 16px",
-                      },
-                    },
-                  }}
-                />
-              )}
             </div>
           </div>
 
-          {loading && <LoadingModal />}
-          {approveLoading && showApprovedModal && <ApprovedModal />}
-          <EquipmentDetails
-            isOpen={equipmentModalOpen}
-            onClose={closeEquipmentModal}
-            equipmentDetails={equipmentDetails}
-            setEquipmentDetails={setEquipmentDetails}
-            setBorrowedItems={setBorrowedItems}
-            toast={toast}
-            fetchAllBorrowedItems={fetchAllBorrowedItems}
-            updateEquipmentStatus={updateEquipmentStatus}
+          <DataTable
+            columns={columns}
+            data={filteredItems}
+            pagination
+            highlightOnHover
+            pointerOnHover
+            responsive
+            customStyles={{
+              headRow: {
+                style: {
+                  backgroundColor: "#F9FAFB",
+                  borderBottom: "1px solid #E5E7EB",
+                },
+              },
+              headCells: {
+                style: {
+                  fontSize: "0.875rem",
+                  fontWeight: "600",
+                  color: "#374151",
+                  padding: "12px 16px",
+                },
+              },
+              cells: {
+                style: {
+                  fontSize: "0.875rem",
+                  color: "#1F2937",
+                  padding: "12px 16px",
+                },
+              },
+            }}
           />
-          <ConfirmReturn
-            isOpen={confirmReturnDialogOpen}
-            onClose={closeConfirmReturnDialog}
-            onConfirm={confirmReturnTransaction}
-          />
-          {isFormOpen && (
-            <Form
-              userDetails={selectedUserDetails}
-              borrowedItems={selectedBorrowedItems}
-              onClose={() => {
-                setIsFormOpen(false);
-                setSelectedUserDetails(null);
-                setSelectedBorrowedItems(null);
-              }}
-            />
-          )}
         </div>
       </div>
+
+      {showApprovedModal && <ApprovedModal />}
+      <EquipmentDetails
+        isOpen={equipmentModalOpen}
+        onClose={closeEquipmentModal}
+        equipmentDetails={equipmentDetails}
+        setEquipmentDetails={setEquipmentDetails}
+        setBorrowedItems={setBorrowedItems}
+        toast={toast}
+        fetchAllBorrowedItems={fetchAllBorrowedItems}
+      />
+      <ConfirmReturn
+        isOpen={confirmReturnDialogOpen}
+        onClose={() => setConfirmReturnDialogOpen(false)}
+        onConfirm={() => {}}
+      />
+      {isFormOpen && (
+        <Form
+          userDetails={selectedUserDetails}
+          s
+          borrowedItems={selectedBorrowedItems}
+          onClose={() => {
+            setIsFormOpen(false);
+            setSelectedUserDetails(null);
+            setSelectedBorrowedItems(null);
+          }}
+        />
+      )}
     </div>
   );
 };
-
-<style jsx>{`
-  .loader {
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    animation: spin 2s linear infinite;
-  }
-
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-`}</style>;
 
 export default Borrowed;

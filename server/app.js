@@ -8,6 +8,8 @@ import borrowListRoutes from './routes/borrowedListRoutes.js';
 import borrowedItemRoutes from './routes/borrowedItemRoutes.js';
 import authRoute from "./routes/authroutes.js"
 import connectDB from "./config/db.js";
+import cron from 'node-cron';
+import sendReturnReminders from './utils/sendReturnReminders.js';
 
 dotenv.config();
 
@@ -62,6 +64,10 @@ app.use('/api', equipmentRoutes);
 app.use('/api/borrow-lists', borrowListRoutes);
 app.use('/api/borrow-items', borrowedItemRoutes);
 
+
+cron.schedule('0 8 * * *', () => {
+  sendReturnReminders();
+});
 
 
 const port = process.env.PORT || 8000;

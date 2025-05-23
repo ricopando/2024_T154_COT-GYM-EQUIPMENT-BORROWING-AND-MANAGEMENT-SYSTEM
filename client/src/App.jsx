@@ -1,5 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+} from "react-router-dom";
 import Home from "./pages/Home/landingpage";
 import Catalog from "./pages/Catalog/catalog";
 import Login from "./pages/login";
@@ -13,95 +18,132 @@ import Inventory from "./pages/inventory";
 import ErrorBoundary from "./pages/error";
 import Report from "./pages/report";
 import AddTransaction from "./pages/Addtransaction";
-import axios from "axios";
+import AdminLayout from "./components/Layout/AdminLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
-  const [userAccess, setUserAccess] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const fetchUserAccess = async () => {
-    try {
-      const response = await axios.get("http://localhost:8000/api/auth/status", {
-        withCredentials: true,
-      });
-      console.log("User Access Response:", response.data);
-
-      // Access the user directly from the response object
-      const currentUserAccess = response.data.user; // Access the user property directly
-
-      if (currentUserAccess) {
-        setUserAccess({
-          inventory: currentUserAccess.inventory ?? false,
-          transaction: currentUserAccess.transaction ?? false,
-          borrowed: currentUserAccess.borrowed ?? false,
-          report: currentUserAccess.report ?? false,
-          userManagement: currentUserAccess.userManagement ?? false,
-          addTransaction:  currentUserAccess.addTransaction ?? false,
-        });
-      } else {
-        console.error("Current user not found in response");
-        setUserAccess({
-          inventory: false,
-          transaction: false,
-          borrowed: false,
-          report: false,
-          userManagement: false,
-          addTransaction: false
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching user access:", error);
-      setUserAccess({
-        inventory: false,
-        transaction: false,
-        borrowed: false,
-        report: false,
-        userManagement: false,
-        addTransaction: false
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUserAccess();
-  }, []);
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <Router>
       <ErrorBoundary>
         <Routes>
-          <Route path="/home" element={<Home />} />
-          <Route path="/catalog" element={<Catalog />} />
+          {/* Public route - only login */}
+          <Route path="/" element={<Login />} />
+
+          {/* Protected User Routes */}
+          <Route
+            path="/catalog"
+            element={
+              <ProtectedRoute allowedRoles={["user", "admin"]}>
+                <Catalog />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/home"
+            element={
+              <ProtectedRoute allowedRoles={["user"]}>
+                <Home />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/borrow"
-            element= {<Borrow /> }
+            element={
+              <ProtectedRoute allowedRoles={["user"]}>
+                <Borrow />
+              </ProtectedRoute>
+            }
           />
-          <Route path="/borrowList" element={<BorrowList />} />
-          <Route path="/" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/userManagement" element={ userAccess.userManagement ? <UserManagement />: <Navigate to="/dashboard" />} />
+          <Route
+            path="/borrowList"
+            element={
+              <ProtectedRoute allowedRoles={["user"]}>
+                <BorrowList />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Protected Admin Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminLayout>
+                  <Dashboard />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/userManagement"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminLayout>
+                  <UserManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/transaction"
             element={
-              userAccess.transaction ? <Transaction /> : <Navigate to="/dashboard" />
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminLayout>
+                  <Transaction />
+                </AdminLayout>
+              </ProtectedRoute>
             }
           />
-          <Route path="/borrowed" element={userAccess.borrowed ? <Borrowed /> : <Navigate to="/dashboard" />} />
+          <Route
+            path="/borrowed"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminLayout>
+                  <Borrowed />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/inventory"
-            element={userAccess.inventory ? <Inventory /> : <Navigate to="/dashboard" />}
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminLayout>
+                  <Inventory />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
           />
           <Route
             path="/report"
-            element={userAccess.report ? <Report /> : <Navigate to="/dashboard" />}
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminLayout>
+                  <Report />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
           />
-          <Route path="/addtransaction" element={userAccess.addTransaction ? <AddTransaction /> :<Navigate to="/dashboard" /> } /> 
+          <Route
+            path="/addtransaction"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminLayout>
+                  <AddTransaction />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Redirect unauthorized or unknown routes to restricted access */}
+          <Route
+            path="*"
+            element={
+              <ProtectedRoute allowedRoles={[]}>
+                <Navigate to="/" replace />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </ErrorBoundary>
     </Router>

@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "../components/Sidebar/Sidebar";
-import Navbar from "../components/Navbar/AdminNavbar";
 import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { toast } from "react-hot-toast";
+import Swal from "sweetalert2";
 
 const Addtransaction = () => {
   const [equipmentItems, setEquipmentItems] = useState([]);
@@ -103,38 +102,61 @@ const Addtransaction = () => {
       return;
     }
 
-    setLoading(true);
-    try {
-      const response = await axios.post(
-        "http://localhost:8000/api/borrow-items/user",
-        {
-          userId: selectedUser,
-          items: selectedItems.map((item) => ({
-            equipment: item.equipment._id,
-            borrowDate: item.borrowDate,
-            returnDate: item.returnDate,
-            status: "Pending",
-          })),
-          status: "Pending",
+    Swal.fire({
+      title: "Confirm Transaction",
+      text: "Are you sure you want to create this transaction?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, create it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        setLoading(true);
+        try {
+          const response = await axios.post(
+            "http://localhost:8000/api/borrow-items/user",
+            {
+              userId: selectedUser,
+              items: selectedItems.map((item) => ({
+                equipment: item.equipment._id,
+                borrowDate: item.borrowDate,
+                returnDate: item.returnDate,
+                status: "Pending",
+              })),
+              status: "Pending",
+            }
+          );
+
+          console.log("Success:", response.data);
+          Swal.fire({
+            title: "Success!",
+            text: "Transaction created successfully",
+            icon: "success",
+            confirmButtonColor: "#3085d6",
+          });
+
+          // Optional: Clear form after successful submission
+          setSelectedItems([]);
+          setSelectedUser("");
+        } catch (error) {
+          console.error(
+            "Error details:",
+            error.response?.data || error.message
+          );
+          Swal.fire({
+            title: "Error!",
+            text: `Failed to create transaction: ${
+              error.response?.data?.message || error.message
+            }`,
+            icon: "error",
+            confirmButtonColor: "#d33",
+          });
+        } finally {
+          setLoading(false);
         }
-      );
-
-      console.log("Success:", response.data);
-      toast.success("Transaction created successfully");
-
-      // Optional: Clear form after successful submission
-      setSelectedItems([]);
-      setSelectedUser("");
-    } catch (error) {
-      console.error("Error details:", error.response?.data || error.message);
-      toast.error(
-        `Failed to create transaction: ${
-          error.response?.data?.message || error.message
-        }`
-      );
-    } finally {
-      setLoading(false);
-    }
+      }
+    });
   };
 
   const filteredEquipment = equipmentItems.filter((item) => {
@@ -210,205 +232,189 @@ const Addtransaction = () => {
   };
 
   return (
-    <div className="flex h-screen">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Navbar />
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="mb-8">
-            <h1
-              className="text-5xl font-bold text-black dark:text-white relative inline-block
-                            after:content-[''] after:block after:w-1/2 after:h-1 after:bg-primary
-                            after:mt-2 after:rounded-full"
-            >
-              ADD TRANSACTION
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-4 text-lg">
-              Create and manage equipment borrowing transactions
-            </p>
-          </div>
+    <div className="p-6">
+      <div className="mb-8">
+        <h1
+          className="text-4xl font-bold text-black dark:text-white relative inline-block
+          after:content-[''] after:block after:w-1/2 after:h-1 after:bg-primary
+          after:mt-2 after:rounded-full"
+        >
+          Add Transaction
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-4 text-lg">
+          Create and manage equipment borrowing transactions
+        </p>
+      </div>
 
-          {/* User Selection */}
-          <div className="mb-6">
-            <label className="block mb-2">Select User</label>
+      {/* User Selection */}
+      <div className="mb-6">
+        <label className="block mb-2">Select User</label>
+        <select
+          value={selectedUser}
+          onChange={(e) => setSelectedUser(e.target.value)}
+          className="w-full p-2 border rounded"
+        >
+          <option value="">Select a user...</option>
+          {users.map((user) => (
+            <option key={user._id} value={user._id}>
+              {user.name} ({user.email})
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Equipment List and Selected Items */}
+      <div className="grid grid-cols-2 gap-6 h-[calc(100vh-350px)]">
+        {/* Available Equipment */}
+        <div className="overflow-hidden flex flex-col">
+          <h2 className="text-xl font-bold mb-4">Available Equipment</h2>
+
+          {/* Move search and filter here */}
+          <div className="mb-4 flex gap-4">
+            <input
+              type="text"
+              placeholder="Search equipment..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="p-2 border rounded flex-1"
+            />
             <select
-              value={selectedUser}
-              onChange={(e) => setSelectedUser(e.target.value)}
-              className="w-full p-2 border rounded"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="p-2 border rounded"
             >
-              <option value="">Select a user...</option>
-              {users.map((user) => (
-                <option key={user._id} value={user._id}>
-                  {user.name} ({user.email})
-                </option>
-              ))}
+              <option value="">All Categories</option>
+              {Array.from(new Set(equipmentItems.map((e) => e.category))).map(
+                (category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                )
+              )}
             </select>
           </div>
 
-          {/* Equipment List and Selected Items */}
-          <div className="grid grid-cols-2 gap-6 h-[calc(100vh-350px)]">
-            {/* Available Equipment */}
-            <div className="overflow-hidden flex flex-col">
-              <h2 className="text-xl font-bold mb-4">Available Equipment</h2>
-
-              {/* Move search and filter here */}
-              <div className="mb-4 flex gap-4">
-                <input
-                  type="text"
-                  placeholder="Search equipment..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="p-2 border rounded flex-1"
-                />
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="p-2 border rounded"
-                >
-                  <option value="">All Categories</option>
-                  {Array.from(
-                    new Set(equipmentItems.map((e) => e.category))
-                  ).map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="overflow-y-auto flex-1">
-                <div className="grid gap-4 pr-2">
-                  {filteredEquipment.map((item) => (
-                    <div key={item._id} className="border p-4 rounded">
-                      <div className="flex justify-between items-center mb-2">
-                        <div>
-                          <h3 className="font-bold">{item.name}</h3>
-                          <p className="text-sm text-gray-600">
-                            {item.category}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            {" "}
-                            Serial Number: {item.serialNumber}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex gap-4 mb-2">
-                        <div>
-                          <label className="block text-sm mb-1">
-                            Borrow Date
-                          </label>
-                          <DatePicker
-                            selected={item.borrowDate}
-                            onChange={(date) => {
-                              const updatedItems = [...equipmentItems];
-                              const index = updatedItems.findIndex(
-                                (i) => i._id === item._id
-                              );
-                              updatedItems[index] = {
-                                ...item,
-                                borrowDate: date,
-                              };
-                              setEquipmentItems(updatedItems);
-                            }}
-                            className="p-2 border rounded text-sm"
-                            minDate={new Date()}
-                            filterDate={(date) =>
-                              !isDateDisabled(date, item._id)
-                            }
-                            dayClassName={(date) =>
-                              highlightWithRanges(date, item._id)
-                            }
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm mb-1">
-                            Return Date
-                          </label>
-                          <DatePicker
-                            selected={item.returnDate}
-                            onChange={(date) => {
-                              const updatedItems = [...equipmentItems];
-                              const index = updatedItems.findIndex(
-                                (i) => i._id === item._id
-                              );
-                              updatedItems[index] = {
-                                ...item,
-                                returnDate: date,
-                              };
-                              setEquipmentItems(updatedItems);
-                            }}
-                            className="p-2 border rounded text-sm"
-                            minDate={item.borrowDate || new Date()}
-                            filterDate={(date) =>
-                              !isDateDisabled(date, item._id)
-                            }
-                            dayClassName={(date) =>
-                              highlightWithRanges(date, item._id)
-                            }
-                          />
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleAddItem(item)}
-                        className="bg-primary text-white px-4 py-2 rounded w-full"
-                        disabled={
-                          selectedItems.some(
-                            (selected) => selected.equipment._id === item._id
-                          ) ||
-                          !item.borrowDate ||
-                          !item.returnDate
+          <div className="overflow-y-auto flex-1">
+            <div className="grid gap-4 pr-2">
+              {filteredEquipment.map((item) => (
+                <div key={item._id} className="border p-4 rounded">
+                  <div className="flex justify-between items-center mb-2">
+                    <div>
+                      <h3 className="font-bold">{item.name}</h3>
+                      <p className="text-sm text-gray-600">{item.category}</p>
+                      <p className="text-sm text-gray-600">
+                        Serial Number: {item.serialNumber}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-4 mb-2">
+                    <div>
+                      <label className="block text-sm mb-1">Borrow Date</label>
+                      <DatePicker
+                        selected={item.borrowDate}
+                        onChange={(date) => {
+                          const updatedItems = [...equipmentItems];
+                          const index = updatedItems.findIndex(
+                            (i) => i._id === item._id
+                          );
+                          updatedItems[index] = {
+                            ...item,
+                            borrowDate: date,
+                          };
+                          setEquipmentItems(updatedItems);
+                        }}
+                        className="p-2 border rounded text-sm"
+                        minDate={new Date()}
+                        filterDate={(date) => !isDateDisabled(date, item._id)}
+                        dayClassName={(date) =>
+                          highlightWithRanges(date, item._id)
                         }
-                      >
-                        Add
-                      </button>
+                      />
                     </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Selected Items */}
-            <div className="overflow-hidden flex flex-col">
-              <h2 className="text-xl font-bold mb-4">Selected Items</h2>
-              <div className="overflow-y-auto flex-1">
-                <div className="grid gap-4 pr-2">
-                  {selectedItems.map((item) => (
-                    <div
-                      key={item.equipment._id}
-                      className="border p-4 rounded flex justify-between items-center"
-                    >
-                      <div>
-                        <h3 className="font-bold">{item.equipment.name}</h3>
-                        <p className="text-sm text-gray-600">
-                          {new Date(item.borrowDate).toLocaleDateString()} -{" "}
-                          {new Date(item.returnDate).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => handleRemoveItem(item.equipment._id)}
-                        className="bg-red-500 text-white px-4 py-2 rounded"
-                      >
-                        Remove
-                      </button>
+                    <div>
+                      <label className="block text-sm mb-1">Return Date</label>
+                      <DatePicker
+                        selected={item.returnDate}
+                        onChange={(date) => {
+                          const updatedItems = [...equipmentItems];
+                          const index = updatedItems.findIndex(
+                            (i) => i._id === item._id
+                          );
+                          updatedItems[index] = {
+                            ...item,
+                            returnDate: date,
+                          };
+                          setEquipmentItems(updatedItems);
+                        }}
+                        className="p-2 border rounded text-sm"
+                        minDate={item.borrowDate || new Date()}
+                        filterDate={(date) => !isDateDisabled(date, item._id)}
+                        dayClassName={(date) =>
+                          highlightWithRanges(date, item._id)
+                        }
+                      />
                     </div>
-                  ))}
+                  </div>
+                  <button
+                    onClick={() => handleAddItem(item)}
+                    className="bg-primary text-white px-4 py-2 rounded w-full"
+                    disabled={
+                      selectedItems.some(
+                        (selected) => selected.equipment._id === item._id
+                      ) ||
+                      !item.borrowDate ||
+                      !item.returnDate
+                    }
+                  >
+                    Add
+                  </button>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
+        </div>
 
-          {/* Submit Button */}
-          <div className="mt-6">
-            <button
-              onClick={handleSubmit}
-              disabled={loading || selectedItems.length === 0 || !selectedUser}
-              className="bg-green-500 text-white px-6 py-2 rounded disabled:bg-gray-400"
-            >
-              {loading ? "Creating Transaction..." : "Create Transaction"}
-            </button>
+        {/* Selected Items */}
+        <div className="overflow-hidden flex flex-col">
+          <h2 className="text-xl font-bold mb-4">Selected Items</h2>
+          <div className="overflow-y-auto flex-1">
+            <div className="grid gap-4 pr-2">
+              {selectedItems.map((item) => (
+                <div
+                  key={item.equipment._id}
+                  className="border p-4 rounded flex justify-between items-center"
+                >
+                  <div>
+                    <h3 className="font-bold">{item.equipment.name}</h3>
+                    <p className="text-sm text-gray-600">
+                      {new Date(item.borrowDate).toLocaleDateString()} -{" "}
+                      {new Date(item.returnDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleRemoveItem(item.equipment._id)}
+                    className="bg-red-500 text-white px-4 py-2 rounded"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Submit Button */}
+      <div className="mt-6">
+        <button
+          onClick={handleSubmit}
+          disabled={loading || selectedItems.length === 0 || !selectedUser}
+          className="bg-primary text-white px-6 py-2 rounded disabled:bg-gray-400"
+        >
+          {loading ? "Creating Transaction..." : "Create Transaction"}
+        </button>
+      </div>
+
       <style jsx global>{`
         .highlight-red {
           background-color: #ffcccc !important;

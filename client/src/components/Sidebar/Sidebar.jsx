@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import buksuLogoW from "../../assets/buksuLogoW.png"; //logo
@@ -175,110 +175,107 @@ const Sidebar = () => {
         isOpen ? "w-64" : "w-16"
       } bg-primary text-white flex flex-col transition-width duration-300 relative z-10`}
     >
-      <div className="flex items-center justify-between p-2 border-b border-secondary">
-        <div className="text-lg font-bold flex items-center">
-          {isOpen && (
-            <>
-              <img src={buksuLogoW} alt="BUKSU Logo" className="w-30 h-20" />
-
-              <span>GEMBS</span>
-            </>
-          )}
-        </div>
+      <div className="flex items-center justify-center p-2">
         <button
           onClick={handleToggle}
-          className="p-3 focus:outline-none focus:bg-gray-700 z-10"
+          className="focus:outline-none focus:bg-gray-700 z-10"
           aria-label="Toggle Sidebar"
           aria-expanded={isOpen}
         >
-          <FontAwesomeIcon icon={isOpen ? faChevronLeft : faChevronRight} />
+          <img
+            src={buksuLogoW}
+            alt="BUKSU Logo"
+            className={`transition-all duration-200 ${
+              isOpen ? "w-30 h-24" : "w-25 h-15"
+            }`}
+          />
         </button>
       </div>
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
           <li>
-            <a
-              href="/dashboard"
+            <Link
+              to="/dashboard"
               className={`flex items-center p-2 rounded hover:bg-secondary focus:outline-none focus:bg-secondary ${
                 isActive("/dashboard") ? "bg-secondary" : ""
               }`}
               aria-label="Home"
             >
-              <FontAwesomeIcon icon={faHome} className="mr-2" />
+              <FontAwesomeIcon icon={faHome} className="text-xl mr-3" />
               {isOpen && "Dashboard"}
-            </a>
+            </Link>
           </li>
           <li>
-            <a
-              href="/userManagement"
+            <Link
+              to="/userManagement"
               className={`flex items-center p-2 rounded hover:bg-secondary focus:outline-none focus:bg-secondary ${
                 isActive("/userManagement") ? "bg-secondary" : ""
               }`}
               aria-label="User"
             >
-              <FontAwesomeIcon icon={faUser} className="mr-2" />
+              <FontAwesomeIcon icon={faUser} className="text-xl mr-3" />
               {isOpen && "User Management"}
-            </a>
+            </Link>
           </li>
           <li>
-            <a
-              href="/inventory"
+            <Link
+              to="/inventory"
               className={`flex items-center p-2 rounded hover:bg-secondary focus:outline-none focus:bg-secondary ${
                 isActive("/inventory") ? "bg-secondary" : ""
               }`}
               aria-label="Inventory"
             >
-              <FontAwesomeIcon icon={faBox} className="mr-2" />
+              <FontAwesomeIcon icon={faBox} className="text-xl mr-3" />
               {isOpen && "Inventory"}
-            </a>
+            </Link>
           </li>
           <li>
-            <a
-              href="/transaction"
+            <Link
+              to="/transaction"
               className={`flex items-center p-2 rounded hover:bg-secondary focus:outline-none focus:bg-secondary ${
                 isActive("/transaction") ? "bg-secondary" : ""
               }`}
               aria-label="Transaction"
             >
-              <FontAwesomeIcon icon={faMoneyBill} className="mr-2" />
+              <FontAwesomeIcon icon={faMoneyBill} className="text-xl mr-3" />
               {isOpen && "Transaction"}
-            </a>
+            </Link>
           </li>
           <li>
-            <a
-              href="/addtransaction"
+            <Link
+              to="/addtransaction"
               className={`flex items-center p-2 rounded hover:bg-secondary focus:outline-none focus:bg-secondary ${
                 isActive("/addtransaction") ? "bg-secondary" : ""
               }`}
               aria-label="Add Transaction"
             >
-              <FontAwesomeIcon icon={faPlus} className="mr-2" />
+              <FontAwesomeIcon icon={faPlus} className="text-xl mr-3" />
               {isOpen && "Add Transaction"}
-            </a>
+            </Link>
           </li>
           <li>
-            <a
-              href="/borrowed"
+            <Link
+              to="/borrowed"
               className={`flex items-center p-2 rounded hover:bg-secondary focus:outline-none focus:bg-secondary ${
                 isActive("/borrowed") ? "bg-secondary" : ""
               }`}
               aria-label="Borrowing"
             >
-              <FontAwesomeIcon icon={faBook} className="mr-2" />
+              <FontAwesomeIcon icon={faBook} className="text-xl mr-3" />
               {isOpen && "Borrowing"}
-            </a>
+            </Link>
           </li>
           <li>
-            <a
-              href="/report"
+            <Link
+              to="/report"
               className={`flex items-center p-2 rounded hover:bg-secondary focus:outline-none focus:bg-secondary ${
                 isActive("/report") ? "bg-secondary" : ""
               }`}
               aria-label="Report"
             >
-              <FontAwesomeIcon icon={faFile} className="mr-2" />
+              <FontAwesomeIcon icon={faFile} className="text-xl mr-3" />
               {isOpen && "Report"}
-            </a>
+            </Link>
           </li>
         </ul>
       </nav>

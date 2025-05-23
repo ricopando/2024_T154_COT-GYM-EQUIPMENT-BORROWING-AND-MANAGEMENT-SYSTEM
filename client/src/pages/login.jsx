@@ -4,6 +4,8 @@ import ReCAPTCHA from "react-google-recaptcha";
 import { CgGym } from "react-icons/cg";
 import "../style/style.css"; //css
 import buksuLogo from "../assets/buksuLogo.jpg"; //logo
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -17,6 +19,7 @@ const Login = () => {
   const [loginError, setLoginError] = useState("");
 
   const recaptchaRef = useRef(null);
+  const navigate = useNavigate();
 
   const validateInputs = () => {
     let isValid = true;
@@ -34,7 +37,7 @@ const Login = () => {
     // Password Validation
     if (!password || password.length < 8) {
       setPasswordError(true);
-      setPasswordErrorMessage("Password must be at least 6 characters long.");
+      setPasswordErrorMessage("Password must be at least 8 characters long.");
       isValid = false;
     } else {
       setPasswordError(false);
@@ -61,30 +64,59 @@ const Login = () => {
       setLoading(true);
       setLoginError(""); // Reset previous login error
       try {
-        const response = await fetch("http://localhost:8000/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password, recaptchaToken }),
-          credentials: "include",
-        });
+        const response = await axios.post(
+          "http://localhost:8000/api/auth/login",
+          {
+            email,
+            password,
+            recaptchaToken,
+          },
+          {
+            withCredentials: true,
+          }
+        );
 
-        const data = await response.json();
-        if (response.ok && data.message.includes("login successful")) {
-          if (data.user.role === "Admin" || data.user.role === "SuperAdmin") {
-            // Navigate to Admin Dashboard
-            window.location.href = "/dashboard";
+        console.log("Login response:", response.data); // Debug log
+
+        if (
+          response.data.message &&
+          response.data.message.includes("login successful")
+        ) {
+          // After successful login, check the auth status to determine role
+          const authCheck = await axios.get(
+            "http://localhost:8000/api/auth/status",
+            {
+              withCredentials: true,
+            }
+          );
+
+          console.log("Auth check after login:", authCheck.data);
+
+          if (authCheck.data.user && authCheck.data.user.role === "Admin") {
+            console.log("Redirecting to dashboard (admin)");
+            navigate("/dashboard");
           } else {
-            // Navigate to User Dashboard
-            window.location.href = "/home";
+            console.log("Redirecting to home (user)");
+            navigate("/home");
           }
         } else {
-          setLoginError(data.message || "Incorrect email or password.");
+          setLoginError(
+            response.data.message || "Incorrect email or password."
+          );
           recaptchaRef.current.reset(); // Reset reCAPTCHA on login error
         }
       } catch (error) {
-        setLoginError("Network error. Please try again later.");
         console.error("Error during login:", error);
-        recaptchaRef.current.reset(); // Reset reCAPTCHA on network error
+        if (error.response) {
+          setLoginError(
+            error.response.data.message || "Login failed. Please try again."
+          );
+        } else if (error.request) {
+          setLoginError("Network error. Please check your connection.");
+        } else {
+          setLoginError("An error occurred. Please try again.");
+        }
+        recaptchaRef.current.reset();
       } finally {
         setLoading(false);
       }
@@ -130,7 +162,6 @@ const Login = () => {
         </div>
         <div className="bg-white dark:bg-gray-800 dark:hover:bg-primary hover:text-white relative shadow-lg duration-300 group max-w-md w-full mx-4 rounded-2xl p-5 transition-transform transform hover:-translate-y-1 hover:shadow-2xl flex-1">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center  text-primary group-hover:text-primary flex items-center justify-center">
-            {/* <CgGym size="40" /> logo diri GEMBS */}
             <img
               src={buksuLogo}
               alt="buksuLogo"

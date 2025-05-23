@@ -1,5 +1,6 @@
 import React from "react";
 import BannerImg from "../../assets/bannerIMG.jpg";
+import BannerImg2 from "../../assets/bannerImg2.png";
 import { MdVerifiedUser } from "react-icons/md";
 import { MdHandyman } from "react-icons/md";
 import { MdSecurity } from "react-icons/md";
@@ -12,7 +13,7 @@ const Banner = () => {
           {/* image section */}
           <div data-aos="zoom-in">
             <img
-              src={BannerImg}
+              src={BannerImg2}
               alt=""
               className="max-w-[800px] h-[600px]  w-full mx-auto  object-cover"
             />

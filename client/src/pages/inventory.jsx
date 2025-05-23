@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Sidebar from "../components/Sidebar/Sidebar";
 import { FaEye } from "react-icons/fa";
+import { MdModeEdit } from "react-icons/md";
+import { MdDelete } from "react-icons/md";
+import { MdHistory } from "react-icons/md";
 import DataTable from "react-data-table-component";
-import Navbar from "../components/Navbar/AdminNavbar";
 import HistoryModal from "../components/HistoryModal";
+import Swal from "sweetalert2";
 
 const Inventory = () => {
   const [equipmentItems, setEquipmentItems] = useState([]);
@@ -39,30 +41,24 @@ const Inventory = () => {
     imageUrl: "",
   });
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [historyModal, setHistoryModal] = useState({
     isOpen: false,
     itemId: null,
   });
 
   const fetchEquipment = async () => {
-    setLoading(true);
     try {
       const response = await axios.get("http://localhost:8000/api/equipment");
       const dataWithId = response.data.map((item, index) => ({
         ...item,
         id: index + 1,
-        version: item.version || 0
+        version: item.version || 0,
       }));
       setEquipmentItems(dataWithId);
       setFilteredData(dataWithId);
     } catch (error) {
       setMessages({ ...messages, error: "Failed to fetch equipment data." });
       setDialogs({ ...dialogs, error: true });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -77,8 +73,6 @@ const Inventory = () => {
       return;
     }
 
-    setLoading(true);
-    setIsDeleting(true);
     try {
       console.log(
         `Attempting to delete equipment with ID: ${modalState.selectedItem._id}`
@@ -93,9 +87,6 @@ const Inventory = () => {
       console.error("Failed to delete equipment:", error);
       setMessages({ ...messages, error: "Failed to delete equipment." });
       setDialogs({ ...dialogs, error: true });
-    } finally {
-      setLoading(false);
-      setIsDeleting(false);
     }
   };
 
@@ -159,13 +150,13 @@ const Inventory = () => {
     }
     const itemWithVersion = {
       ...item,
-      version: item.version || 0
+      version: item.version || 0,
     };
-    
-    setModalState({ 
-      isOpen: true, 
-      isEditMode: true, 
-      selectedItem: itemWithVersion
+
+    setModalState({
+      isOpen: true,
+      isEditMode: true,
+      selectedItem: itemWithVersion,
     });
     setNewEquipment({
       name: item.name,
@@ -175,7 +166,7 @@ const Inventory = () => {
       serialNumber: item.serialNumber,
       model: item.model,
       availabilityStatus: item.availabilityStatus,
-      version: item.version || 0
+      version: item.version || 0,
     });
   };
 
@@ -221,8 +212,6 @@ const Inventory = () => {
   };
 
   const handleAddOrEditEquipment = async () => {
-    setLoading(true);
-    setIsSaving(true);
     try {
       let imageUrl = newEquipment.image;
 
@@ -236,7 +225,7 @@ const Inventory = () => {
         const equipmentData = {
           ...newEquipment,
           image: imageUrl,
-          version: modalState.selectedItem.version
+          version: modalState.selectedItem.version,
         };
 
         const response = await axios.put(
@@ -273,7 +262,8 @@ const Inventory = () => {
       if (error.response?.status === 409) {
         setMessages({
           ...messages,
-          error: "This equipment has been modified by another user. Please refresh and try again."
+          error:
+            "This equipment has been modified by another user. Please refresh and try again.",
         });
         setDialogs({ ...dialogs, error: true });
         fetchEquipment(); // Refresh the data
@@ -281,9 +271,6 @@ const Inventory = () => {
         setMessages({ ...messages, error: "Failed to save equipment." });
         setDialogs({ ...dialogs, error: true });
       }
-    } finally {
-      setLoading(false);
-      setIsSaving(false);
     }
   };
 
@@ -321,13 +308,52 @@ const Inventory = () => {
     }
   }, [searchQuery, categoryFilter, equipmentItems]);
 
-  const handleDeleteClick = (item) => {
-    if (item.availabilityStatus === "Borrowed") {
-      setDialogs({ ...dialogs, borrowed: true });
-      return;
-    }
-    setModalState({ ...modalState, selectedItem: item });
-    setDialogs({ ...dialogs, confirmDelete: true });
+  const handleDeleteClick = (equipment) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Are you sure you want to delete this equipment?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await axios.delete(
+            `http://localhost:8000/api/equipment/${equipment._id}`,
+            {
+              withCredentials: true,
+            }
+          );
+
+          if (response.status === 200) {
+            Swal.fire({
+              title: "Deleted!",
+              text: "Equipment has been deleted successfully.",
+              icon: "success",
+              confirmButtonColor: "#3085d6",
+            });
+            await fetchEquipment();
+          } else {
+            Swal.fire({
+              title: "Error!",
+              text: "Failed to delete equipment.",
+              icon: "error",
+              confirmButtonColor: "#d33",
+            });
+          }
+        } catch (error) {
+          console.error("Failed to delete equipment:", error);
+          Swal.fire({
+            title: "Error!",
+            text: "Failed to delete equipment.",
+            icon: "error",
+            confirmButtonColor: "#d33",
+          });
+        }
+      }
+    });
   };
 
   const handleHistoryClick = (item) => {
@@ -410,7 +436,7 @@ const Inventory = () => {
                   : "pointer",
             }}
           >
-            Edit
+            <MdModeEdit />
           </button>
           <button
             onClick={() => handleDeleteClick(row)}
@@ -424,14 +450,14 @@ const Inventory = () => {
                   : "pointer",
             }}
           >
-            Delete
+            <MdDelete />
           </button>
           <button
             onClick={() => handleHistoryClick(row)}
             className="text-blue-600 hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-300"
             aria-label={`View history of ${row.name}`}
           >
-            History
+            <MdHistory />
           </button>
         </div>
       ),
@@ -439,337 +465,264 @@ const Inventory = () => {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <Navbar />
-        <div className="flex-1 p-8 overflow-y-auto">
-          <div className="max-w-full mx-auto">
-            <div className="mb-8">
-              <h1
-                className="text-5xl font-bold text-black dark:text-white relative inline-block
-                after:content-[''] after:block after:w-1/2 after:h-1 after:bg-primary
-                after:mt-2 after:rounded-full"
-              >
-                INVENTORY
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-4 text-lg">
-                Manage and track all equipment in the inventory
-              </p>
-            </div>
+    <div className="p-6">
+      {/* Header Section */}
+      <div className="mb-8">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1
+              className="text-4xl font-bold text-black dark:text-white relative inline-block
+              after:content-[''] after:block after:w-1/2 after:h-1 after:bg-primary
+              after:mt-2 after:rounded-full"
+            >
+              Inventory
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-4 text-lg">
+              Manage and track all equipment in the system
+            </p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="bg-white border border-gray-300 rounded-lg p-2"
+            >
+              <option value="">All Categories</option>
+              <option value="Sports">Sports</option>
+              <option value="Furniture">Furniture</option>
+              <option value="Electronics">Electronics</option>
+            </select>
+            <button
+              onClick={handleAddClick}
+              className="px-4 py-2 bg-primary text-white text-sm rounded-lg transition-colors"
+            >
+              Add Equipment
+            </button>
+          </div>
+        </div>
+      </div>
 
-            <div className="bg-white rounded-lg shadow mb-6">
-              <div className="p-4 border-b border-gray-200">
-                <div className="flex items-center justify-between space-x-4">
-                  <div className="w-1/4">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="Search Equipment"
-                        value={searchQuery}
-                        onChange={handleSearchChange}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                      <div className="absolute left-3 top-2.5 text-gray-400">
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                          />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <select
-                      value={categoryFilter}
-                      onChange={(e) => setCategoryFilter(e.target.value)}
-                      className="bg-white border border-gray-300 rounded-lg p-2"
-                    >
-                      <option value="">All Categories</option>
-                      <option value="Sports">Sports</option>
-                      <option value="Furniture">Furniture</option>
-                      <option value="Electronics">Electronics</option>
-                    </select>
-                    <button
-                      onClick={handleAddClick}
-                      className="px-4 py-2 bg-primary text-white text-sm rounded-lg transition-colors"
-                    >
-                      Add Equipment
-                    </button>
-                  </div>
+      <div className="bg-white rounded-lg shadow mb-6">
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between space-x-4">
+            <div className="w-1/4">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search Equipment"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <div className="absolute left-3 top-2.5 text-gray-400">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
                 </div>
               </div>
-
-              {loading ? (
-                <div className="flex justify-center items-center h-64">
-                  <div className="loader"></div>
-                </div>
-              ) : (
-                <DataTable
-                  columns={columns}
-                  data={filteredData}
-                  pagination
-                  highlightOnHover
-                  pointerOnHover
-                  responsive
-                  customStyles={{
-                    headRow: {
-                      style: {
-                        backgroundColor: "#F9FAFB",
-                        borderBottom: "1px solid #E5E7EB",
-                      },
-                    },
-                    headCells: {
-                      style: {
-                        fontSize: "0.875rem",
-                        fontWeight: "600",
-                        color: "#374151",
-                        padding: "12px 16px",
-                      },
-                    },
-                    cells: {
-                      style: {
-                        fontSize: "0.875rem",
-                        color: "#1F2937",
-                        padding: "12px 16px",
-                      },
-                    },
-                  }}
-                />
-              )}
             </div>
           </div>
+        </div>
 
-          {/* Image Modal */}
-          {imageModal.isOpen && (
-            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center">
-              <div className="relative bg-white p-4 rounded-lg shadow-lg max-w-xs md:max-w-md">
-                <img
-                  src={imageModal.imageUrl}
-                  alt="Equipment"
-                  className="w-full h-auto object-contain rounded"
+        <DataTable
+          columns={columns}
+          data={filteredData}
+          pagination
+          highlightOnHover
+          pointerOnHover
+          responsive
+          customStyles={{
+            headRow: {
+              style: {
+                backgroundColor: "#F9FAFB",
+                borderBottom: "1px solid #E5E7EB",
+              },
+            },
+            headCells: {
+              style: {
+                fontSize: "0.875rem",
+                fontWeight: "600",
+                color: "#374151",
+                padding: "12px 16px",
+              },
+            },
+            cells: {
+              style: {
+                fontSize: "0.875rem",
+                color: "#1F2937",
+                padding: "12px 16px",
+              },
+            },
+          }}
+        />
+      </div>
+
+      {/* Image Modal */}
+      {imageModal.isOpen && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center">
+          <div className="relative bg-white p-4 rounded-lg shadow-lg max-w-xs md:max-w-md">
+            <img
+              src={imageModal.imageUrl}
+              alt="Equipment"
+              className="w-full h-auto object-contain rounded"
+            />
+            <button
+              onClick={() => setImageModal({ isOpen: false, imageUrl: "" })}
+              className="absolute top-0 right-0 mt-2 mr-2 text-red-600 hover:text-red-800"
+              aria-label="Close image modal"
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modals and Dialogs */}
+      {modalState.isOpen && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+          <div className="relative p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+            <div className="mt-3 text-center">
+              <h3 className="text-lg leading-6 font-medium text-gray-900">
+                {modalState.isEditMode ? "Edit Equipment" : "Add New Equipment"}
+              </h3>
+              <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  name="name"
+                  value={newEquipment.name}
+                  onChange={handleInputChange}
+                  placeholder="Equipment Name"
+                  className="w-full p-2 border border-gray-300 rounded"
                 />
-                <button
-                  onClick={() => setImageModal({ isOpen: false, imageUrl: "" })}
-                  className="absolute top-0 right-0 mt-2 mr-2 text-red-600 hover:text-red-800"
-                  aria-label="Close image modal"
+                <select
+                  name="category"
+                  value={newEquipment.category}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border border-gray-300 rounded"
                 >
-                  &times;
+                  <option value="">Select Category</option>
+                  <option value="Sports">Sports</option>
+                  <option value="Furniture">Furniture</option>
+                  <option value="Electronics">Electronics</option>
+                </select>
+                <textarea
+                  name="description"
+                  value={newEquipment.description}
+                  onChange={handleInputChange}
+                  placeholder="Description"
+                  className="w-full p-2 border border-gray-300 rounded col-span-1 md:col-span-2 h-24"
+                />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="w-full p-1 border border-gray-300 rounded text-sm"
+                />
+                <input
+                  type="text"
+                  name="serialNumber"
+                  value={newEquipment.serialNumber}
+                  onChange={handleInputChange}
+                  placeholder="Serial Number"
+                  className="w-full p-2 border border-gray-300 rounded"
+                />
+                <input
+                  type="text"
+                  name="model"
+                  value={newEquipment.model}
+                  onChange={handleInputChange}
+                  placeholder="Model"
+                  className="w-full p-2 border border-gray-300 rounded"
+                />
+              </div>
+              <div className="flex items-center justify-center space-x-2 px-4 py-3">
+                <button
+                  onClick={() =>
+                    setModalState({ ...modalState, isOpen: false })
+                  }
+                  className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-1/2 shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddOrEditEquipment}
+                  className="px-4 py-2 bg-primary text-white text-base font-medium rounded-md w-1/2 shadow-sm"
+                >
+                  {modalState.isEditMode ? "Update" : "Save"}
                 </button>
               </div>
             </div>
-          )}
-
-          {/* Modals and Dialogs */}
-          {modalState.isOpen && (
-            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-              <div className="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
-                <div className="mt-3 text-center">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">
-                    {modalState.isEditMode
-                      ? "Edit Equipment"
-                      : "Add New Equipment"}
-                  </h3>
-                  <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input
-                      type="text"
-                      name="name"
-                      value={newEquipment.name}
-                      onChange={handleInputChange}
-                      placeholder="Equipment Name"
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                    <select
-                      name="category"
-                      value={newEquipment.category}
-                      onChange={handleInputChange}
-                      className="w-full p-2 border border-gray-300 rounded"
-                    >
-                      <option value="">Select Category</option>
-                      <option value="Sports">Sports</option>
-                      <option value="Furniture">Furniture</option>
-                      <option value="Electronics">Electronics</option>
-                    </select>
-                    <textarea
-                      name="description"
-                      value={newEquipment.description}
-                      onChange={handleInputChange}
-                      placeholder="Description"
-                      className="w-full p-2 border border-gray-300 rounded col-span-1 md:col-span-2 h-24"
-                    />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                    <input
-                      type="text"
-                      name="serialNumber"
-                      value={newEquipment.serialNumber}
-                      onChange={handleInputChange}
-                      placeholder="Serial Number"
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                    <input
-                      type="text"
-                      name="model"
-                      value={newEquipment.model}
-                      onChange={handleInputChange}
-                      placeholder="Model"
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                  <div className="flex flex-col items-center px-4 py-3 space-y-2">
-                    <button
-                      onClick={() =>
-                        setModalState({ ...modalState, isOpen: false })
-                      }
-                      className={`px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300 ${
-                        isSaving ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                      disabled={isSaving}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleAddOrEditEquipment}
-                      className={`px-4 py-2 bg-primary text-white text-base font-medium rounded-md w-full shadow-sm ${
-                        isSaving ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                      disabled={isSaving}
-                    >
-                      {isSaving
-                        ? "Saving..."
-                        : modalState.isEditMode
-                        ? "Update"
-                        : "Save"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Dialogs */}
-          {dialogs.confirmDelete && (
-            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-              <div className="relative top-20 mx-auto p-5 border w-full max-w-sm shadow-lg rounded-md bg-white">
-                <div className="mt-3 text-center">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">
-                    Confirm Delete
-                  </h3>
-                  <div className="mt-2">
-                    <p>Are you sure you want to delete this equipment?</p>
-                  </div>
-                  <div className="items-center px-4 py-3">
-                    <button
-                      onClick={() =>
-                        setDialogs({ ...dialogs, confirmDelete: false })
-                      }
-                      className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
-                      disabled={isDeleting}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleDeleteEquipment}
-                      className="px-4 py-2 bg-primary text-white text-base font-medium rounded-md w-full shadow-sm  mt-2"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {dialogs.success && (
-            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-              <div className="relative top-20 mx-auto p-5 border w-full max-w-sm shadow-lg rounded-md bg-white">
-                <div className="mt-3 text-center">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">
-                    Success
-                  </h3>
-                  <div className="mt-2">
-                    <p>{messages.success}</p>
-                  </div>
-                  <div className="items-center px-4 py-3">
-                    <button
-                      onClick={() => setDialogs({ ...dialogs, success: false })}
-                      className="px-4 py-2 bg-primary text-white text-base font-medium rounded-md w-full shadow-sm "
-                    >
-                      OK
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {dialogs.error && (
-            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-              <div className="relative top-20 mx-auto p-5 border w-full max-w-sm shadow-lg rounded-md bg-white">
-                <div className="mt-3 text-center">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">
-                    Error
-                  </h3>
-                  <div className="mt-2">
-                    <p>{messages.error}</p>
-                  </div>
-                  <div className="items-center px-4 py-3">
-                    <button
-                      onClick={() => setDialogs({ ...dialogs, error: false })}
-                      className="px-4 py-2 bg-primary text-white text-base font-medium rounded-md w-full shadow-sm"
-                    >
-                      OK
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* History Modal */}
-          {historyModal.isOpen && (
-            <HistoryModal
-              isOpen={historyModal.isOpen}
-              onClose={() => setHistoryModal({ isOpen: false, itemId: null })}
-              itemId={historyModal.itemId}
-            />
-          )}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Dialogs */}
+      {dialogs.success && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+          <div className="relative p-5 border w-full max-w-sm shadow-lg rounded-md bg-white">
+            <div className="mt-3 text-center">
+              <h3 className="text-lg leading-6 font-medium text-gray-900">
+                Success
+              </h3>
+              <div className="mt-2">
+                <p>{messages.success}</p>
+              </div>
+              <div className="items-center px-4 py-3">
+                <button
+                  onClick={() => setDialogs({ ...dialogs, success: false })}
+                  className="px-4 py-2 bg-primary text-white text-base font-medium rounded-md w-full shadow-sm"
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {dialogs.error && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+          <div className="relative top-20 mx-auto p-5 border w-full max-w-sm shadow-lg rounded-md bg-white">
+            <div className="mt-3 text-center">
+              <h3 className="text-lg leading-6 font-medium text-gray-900">
+                Error
+              </h3>
+              <div className="mt-2">
+                <p>{messages.error}</p>
+              </div>
+              <div className="items-center px-4 py-3">
+                <button
+                  onClick={() => setDialogs({ ...dialogs, error: false })}
+                  className="px-4 py-2 bg-primary text-white text-base font-medium rounded-md w-full shadow-sm"
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* History Modal */}
+      {historyModal.isOpen && (
+        <HistoryModal
+          isOpen={historyModal.isOpen}
+          onClose={() => setHistoryModal({ isOpen: false, itemId: null })}
+          itemId={historyModal.itemId}
+        />
+      )}
     </div>
   );
 };
-
-<style jsx>{`
-  .loader {
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    animation: spin 2s linear infinite;
-  }
-
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-`}</style>;
 
 export default Inventory;

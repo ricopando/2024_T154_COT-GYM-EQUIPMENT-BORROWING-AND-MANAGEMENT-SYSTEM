@@ -17,7 +17,7 @@ const ConfirmDeclineDialog = ({ isOpen, onClose, onConfirm }) => {
             Cancel
           </button>
           <button
-            className="bg-red-500 text-white py-1 px-4 rounded"
+            className="bg-primary text-white py-1 px-4 rounded"
             onClick={onConfirm}
           >
             Confirm

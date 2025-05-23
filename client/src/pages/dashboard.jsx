@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "../components/Sidebar/Sidebar";
-import Navbar from "../components/Navbar/AdminNavbar";
 import axios from "axios";
-import { Pie } from "react-chartjs-2";
+import { Bar, Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
-  ArcElement,
   Tooltip,
   Legend,
   CategoryScale,
   LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
 } from "chart.js";
 import { FaExchangeAlt } from "react-icons/fa"; // For Total Transactions
 import { FaTools } from "react-icons/fa"; // For Total Equipment
@@ -18,7 +18,15 @@ import { FaCheckCircle } from "react-icons/fa"; // For Returned Requests
 import { FaThumbsUp } from "react-icons/fa"; // For Approved Requests
 
 // Register ChartJS components
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale);
+ChartJS.register(
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement
+);
 
 const Dashboard = () => {
   const [equipmentCount, setEquipmentCount] = useState(0);
@@ -28,40 +36,66 @@ const Dashboard = () => {
   const [totalTransactions, setTotalTransactions] = useState(0);
   const [weatherData, setWeatherData] = useState(null);
   const [adviceData, setAdviceData] = useState({ slip: { advice: "" } });
+  const [monthlyData, setMonthlyData] = useState({
+    labels: [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ],
+    transactions: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  });
+  const [yearlyData, setYearlyData] = useState({
+    labels: ["2019", "2020", "2021", "2022", "2023", "2024"],
+    transactions: [0, 0, 0, 0, 0, 0],
+  });
 
-  // Add chart data
-  const chartData = {
-    labels: ["Approved", "Returned", "Pending"],
+  // Bar Chart Data (Monthly)
+  const barChartData = {
+    labels: monthlyData.labels,
     datasets: [
       {
-        data: [approvedBorrowCount, returnedBorrowCount, pendingBorrowCount],
-        backgroundColor: [
-          "rgba(34, 197, 94, 0.6)", // green for approved
-          "rgba(59, 130, 246, 0.6)", // blue for returned
-          "rgba(249, 115, 22, 0.6)", // orange for pending
-        ],
-        borderColor: [
-          "rgba(34, 197, 94, 1)",
-          "rgba(59, 130, 246, 1)",
-          "rgba(249, 115, 22, 1)",
-        ],
+        label: "Monthly Transactions",
+        data: monthlyData.transactions,
+        backgroundColor: "rgba(59, 130, 246, 0.5)",
+        borderColor: "rgba(59, 130, 246, 1)",
         borderWidth: 1,
       },
     ],
   };
 
-  const chartOptions = {
+  // Line Chart Data (Yearly)
+  const lineChartData = {
+    labels: yearlyData.labels,
+    datasets: [
+      {
+        label: "Yearly Transactions",
+        data: yearlyData.transactions,
+        fill: false,
+        borderColor: "rgba(34, 197, 94, 1)",
+        tension: 0.1,
+      },
+    ],
+  };
+
+  const barAndLineOptions = {
     responsive: true,
     plugins: {
       legend: {
         position: "bottom",
       },
-      title: {
-        display: true,
-        text: "Borrow Requests Distribution",
-        font: {
-          size: 16,
-        },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
       },
     },
   };
@@ -155,10 +189,69 @@ const Dashboard = () => {
       }
     };
 
+    const fetchMonthlyData = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:8000/api/borrow-items",
+          {
+            withCredentials: true,
+          }
+        );
+
+        // Initialize monthly counts array with zeros
+        const monthlyCounts = new Array(12).fill(0);
+
+        // Process each transaction
+        response.data.forEach((transaction) => {
+          const month = new Date(transaction.createdAt).getMonth(); // 0-11
+          monthlyCounts[month]++;
+        });
+
+        setMonthlyData((prev) => ({
+          ...prev,
+          transactions: monthlyCounts,
+        }));
+      } catch (error) {
+        console.error("Error fetching monthly data:", error);
+      }
+    };
+
+    const fetchYearlyData = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:8000/api/borrow-items",
+          {
+            withCredentials: true,
+          }
+        );
+
+        // Initialize yearly counts array with zeros
+        const yearlyCounts = new Array(6).fill(0);
+
+        // Process each transaction
+        response.data.forEach((transaction) => {
+          const year = new Date(transaction.createdAt).getFullYear();
+          const yearIndex = year - 2019; // Assuming we want data from 2019-2024
+          if (yearIndex >= 0 && yearIndex < 6) {
+            yearlyCounts[yearIndex]++;
+          }
+        });
+
+        setYearlyData((prev) => ({
+          ...prev,
+          transactions: yearlyCounts,
+        }));
+      } catch (error) {
+        console.error("Error fetching yearly data:", error);
+      }
+    };
+
     fetchEquipmentCount();
     fetchAllBorrowTransactions();
     fetchWeatherData();
     handleFetchAdvice();
+    fetchMonthlyData();
+    fetchYearlyData();
   }, []);
 
   // Add this useEffect for auto-generating advice
@@ -174,125 +267,177 @@ const Dashboard = () => {
   }, []); // Empty dependency array means this runs once on mount
 
   return (
-    <div className="flex h-screen">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <Navbar />
-        <main className="flex-1 p-4">
-          <div className="text-left mt-8 mb-10">
+    <div className="p-8">
+      {/* Header Section */}
+      <div className="mb-8">
+        <div className="flex justify-between items-center">
+          <div>
             <h1
-              className="text-5xl font-bold text-black dark:text-white relative inline-block
+              className="text-4xl font-bold text-black dark:text-white relative inline-block
               after:content-[''] after:block after:w-1/2 after:h-1 after:bg-primary
               after:mt-2 after:rounded-full"
             >
-              DASHBOARD
+              Dashboard
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-4 text-lg">
-              Monitor and manage your system overview
+              Monitor and manage your system performance
             </p>
           </div>
+        </div>
+      </div>
 
-          {/* Dashboard Cards Container */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            {/* First Row - 3 Cards */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-black">
-                  Total Transactions
-                </h2>
-                <FaExchangeAlt className="text-primary text-2xl" />
-              </div>
-              <p className="text-3xl font-bold text-primary">
+      {/* Quick Stats Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Total Transactions
+              </p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white mt-1">
                 {totalTransactions}
               </p>
             </div>
+            <div className="p-3 bg-blue-50 dark:bg-blue-900 rounded-lg">
+              <FaExchangeAlt className="text-blue-500 dark:text-blue-400 text-xl" />
+            </div>
+          </div>
+        </div>
 
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-black">
-                  Total Equipment
-                </h2>
-                <FaTools className="text-secondary text-2xl" />
-              </div>
-              <p className="text-3xl font-bold text-primary">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Total Equipment
+              </p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white mt-1">
                 {equipmentCount}
               </p>
             </div>
+            <div className="p-3 bg-green-50 dark:bg-green-900 rounded-lg">
+              <FaTools className="text-green-500 dark:text-green-400 text-xl" />
+            </div>
+          </div>
+        </div>
 
-            {/* Weather & Advice Card */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <div className="flex justify-between items-start">
-                {/* Weather Section */}
-                {weatherData ? (
-                  <div className="flex items-center">
-                    <img
-                      src={weatherData.current.condition.icon}
-                      alt={weatherData.current.condition.text}
-                      className="w-12 h-12 mr-3"
-                    />
-                    <div>
-                      <p className="text-2xl font-bold text-black">
-                        {weatherData.current.temp_c}°C
-                      </p>
-                      <p className="text-sm text-black">
-                        {weatherData.current.condition.text}
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-black text-sm">Loading weather...</p>
-                )}
-
-                {/* Divider */}
-                <div className="h-12 w-px bg-gray-200 mx-6"></div>
-
-                {/* Advice Section */}
-                <div className="flex-1">
-                  <p className="text-gray-600 text-sm italic mb-2">
-                    "{adviceData.slip.advice}"
+        {/* Weather & Advice Card */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            {weatherData ? (
+              <div className="flex items-center space-x-4">
+                <img
+                  src={weatherData.current.condition.icon}
+                  alt={weatherData.current.condition.text}
+                  className="w-12 h-12"
+                />
+                <div>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {weatherData.current.temp_c}°C
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {weatherData.current.condition.text}
                   </p>
                 </div>
               </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-black">
-                  Pending Borrow Requests
-                </h2>
-                <FaClock className="text-yellow-500 text-2xl" />
-              </div>
-              <p className="text-3xl font-bold text-primary">
-                {pendingBorrowCount}
+            ) : (
+              <p className="text-gray-600 dark:text-gray-400">
+                Loading weather...
               </p>
-            </div>
-
-            {/* Second Row - 3 Cards */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-black">
-                  Returned Borrow Requests
-                </h2>
-                <FaCheckCircle className="text-green-500 text-2xl" />
-              </div>
-              <p className="text-3xl font-bold text-primary">
-                {returnedBorrowCount}
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-black">
-                  Approved Borrow Requests
-                </h2>
-                <FaThumbsUp className="text-green-500 text-2xl" />
-              </div>
-              <p className="text-3xl font-bold text-primary">
-                {approvedBorrowCount}
+            )}
+            <div className="text-right">
+              <p className="text-sm text-gray-600 dark:text-gray-400 italic">
+                "{adviceData.slip.advice}"
               </p>
             </div>
           </div>
-        </main>
+        </div>
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Left Column - Status Cards */}
+        <div className="lg:col-span-1">
+          {/* Request Status Card */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 h-[340px] flex flex-col">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Request Status
+            </h3>
+            <div className="flex-1 flex flex-col justify-between">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3 mt-4">
+                    <div className="p-2 bg-orange-50 dark:bg-orange-900 rounded-lg">
+                      <FaClock className="text-orange-500 dark:text-orange-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Pending
+                      </p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {pendingBorrowCount}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-blue-50 dark:bg-blue-900 rounded-lg">
+                      <FaCheckCircle className="text-blue-500 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Returned
+                      </p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {returnedBorrowCount}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-green-50 dark:bg-green-900 rounded-lg">
+                      <FaThumbsUp className="text-green-500 dark:text-green-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Approved
+                      </p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {approvedBorrowCount}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column - Charts */}
+        <div className="lg:col-span-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 h-[340px] flex flex-col">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Monthly Transactions
+              </h3>
+              <div className="flex-1">
+                <Bar data={barChartData} options={barAndLineOptions} />
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 h-[340px] flex flex-col">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Yearly Transactions
+              </h3>
+              <div className="flex-1">
+                <Line data={lineChartData} options={barAndLineOptions} />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
